@@ -157,3 +157,444 @@
                     <h3 id="celeb-rank-name" class="text-3xl font-black text-amber-400 tracking-tight">-</h3>
                     <p class="text-xs text-slate-500 font-mono">Unvan Seviyesi Aktifleşti</p>
                 </div>
+
+                <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-800 text-slate-300 italic text-sm font-medium leading-relaxed shadow-inner max-w-xs mx-auto">
+                    " <span id="celeb-quote">Söz</span> "
+                </div>
+
+                <button onclick="closeCelebration()" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all active:scale-95 cursor-pointer shadow-md">
+                    Maceraya Devam Et <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="player-card-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50" onclick="closeProfileCard()">
+            <div class="bg-slate-900 border-2 border-slate-800 p-6 rounded-3xl w-full max-w-xs text-center shadow-2xl space-y-5 animate-fade-in" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="text-xs font-mono text-slate-400">Kullanıcı Sicili</span>
+                    <button onclick="closeProfileCard()" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="w-20 h-20 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center shadow-md">
+                    <span id="card-avatar-emoji" class="text-3xl">👤</span>
+                    <img id="card-avatar-img" src="" class="hidden w-full h-full object-cover">
+                </div>
+
+                <div class="space-y-4 font-mono">
+                    <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80">
+                        <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider">Mevcut Kademe</span>
+                        <span id="card-rank-name" class="text-base font-black text-amber-400">-</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase">Seviye</span>
+                            <span id="card-level-val" class="text-lg font-black text-white">1</span>
+                        </div>
+                        <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase">Cüzdan</span>
+                            <span id="card-score-val" class="text-lg font-black text-emerald-400">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[10px] text-slate-500 italic">Geliştirici: Tetah Mara Dev Team 2026</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let playerStats = { level: 1, score: 0, theme: 'dark' };
+
+        if (localStorage.getItem("plusMinus_playerStats")) {
+            let loaded = JSON.parse(localStorage.getItem("plusMinus_playerStats"));
+            playerStats.level = loaded.level || 1;
+            playerStats.score = loaded.score || 0;
+            playerStats.theme = loaded.theme || 'dark';
+        }
+
+        const MAX_LEVELS = 3024; 
+        let currentDifficulty = 'medium'; 
+        let maxDigits = 4;
+        let allowedPool = [];
+        let currentGuess = [];
+        let gizliSayi = "";
+        let movesCount = 0;
+        let timerInterval = null;
+        let timeLeft = 60;
+        let maxProMoves = 10; 
+        let totalSecondsSpent = 0; 
+        let isGameActive = false;
+        let lastResultWin = false;
+        let analysis = { zero: 0, minus: 0, plus: 0, mixed: 0 };
+
+        // 🧠 DEHA DETAYLARI VE ÖZLÜ SÖZLER REHBERİ
+        function getRankConfig(level) {
+            if (level >= 21) {
+                return { name: "Tetah Mara", isImg: true, file: "tetah_mara.png", quote: "In for a penny, in for a pound.", maxMoves: 11, duration: 60 };
+            } else if (level >= 13) {
+                return { name: "Öklid", isImg: true, file: "oklid.png", quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.", maxMoves: 11, duration: 75 };
+            } else if (level >= 8) {
+                return { name: "Da Vinci", isImg: true, file: "davinci.png", quote: "Kurguladığın her şey, doğanın şifrelerinde zaten gizlidir.", maxMoves: 19, duration: 75 };
+            } else if (level >= 5) {
+                return { name: "Einstein", isImg: true, file: "einstein.png", quote: "Hayal gücü bilgiden daha önemlidir, çünkü bilgi sınırlıdır.", maxMoves: 19, duration: 90 };
+            } else if (level >= 3) {
+                return { name: "Marie Curie", isImg: true, file: "mariecurie.png", quote: "Hayatta hiçbir şeyden korkmayın, sadece onları anlamaya çalışın.", maxMoves: 32, duration: 90 };
+            } else if (level >= 2) {
+                return { name: "Fibonacci", isImg: true, file: "fibonacci.png", quote: "Sayılar evrenin kalbidir ve her adım bir öncekinin mirasıdır.", maxMoves: 32, duration: 120 };
+            } else {
+                return { name: "Çömez", isImg: false, emoji: "👤", quote: "Sayılar alemine hoş geldin. Yolun uzun, sabırlı ol!", maxMoves: 53, duration: 200 };
+            }
+        }
+
+        function saveStats() { localStorage.setItem("plusMinus_playerStats", JSON.stringify(playerStats)); }
+
+        function updateMenuData() {
+            document.getElementById("menu-level-text").innerText = playerStats.level;
+            document.getElementById("menu-score-text").innerText = playerStats.score;
+            document.getElementById("top-score-text").innerText = playerStats.score;
+            document.getElementById("badge-level").innerText = `LVL ${playerStats.level}`;
+            
+            let config = getRankConfig(playerStats.level);
+            document.getElementById("menu-rank-name").innerText = config.name;
+            document.getElementById("top-rank-name").innerText = config.name;
+            document.getElementById("pro-desc-text").innerText = `Maks ${config.maxMoves} Hamle / ${config.duration}s Süre!`;
+
+            const menuEmoji = document.getElementById("menu-avatar-emoji");
+            const menuImg = document.getElementById("menu-avatar-img");
+            const topEmoji = document.getElementById("top-avatar-emoji");
+            const topImg = document.getElementById("top-avatar-img");
+
+            if (config.isImg) {
+                menuEmoji.classList.add("hidden"); menuImg.classList.remove("hidden"); menuImg.src = config.file;
+                topEmoji.classList.add("hidden"); topImg.classList.remove("hidden"); topImg.src = config.file;
+            } else {
+                menuImg.classList.add("hidden"); menuEmoji.classList.remove("hidden"); menuEmoji.innerText = config.emoji;
+                topImg.classList.add("hidden"); topEmoji.classList.remove("hidden"); topEmoji.innerText = config.emoji;
+            }
+            applyThemeUI();
+        }
+
+        // 👤 İSTATİSTİK KARTINI TETİKLEME (AVATARA TIKLANDIĞINDA)
+        function openProfileCard() {
+            let config = getRankConfig(playerStats.level);
+            document.getElementById("card-rank-name").innerText = config.name;
+            document.getElementById("card-level-val").innerText = playerStats.level;
+            document.getElementById("card-score-val").innerText = playerStats.score;
+
+            const cardEmoji = document.getElementById("card-avatar-emoji");
+            const cardImg = document.getElementById("card-avatar-img");
+
+            if(config.isImg) {
+                cardEmoji.classList.add("hidden"); cardImg.classList.remove("hidden"); cardImg.src = config.file;
+            } else {
+                cardImg.classList.add("hidden"); cardEmoji.classList.remove("hidden"); cardEmoji.innerText = config.emoji;
+            }
+
+            document.getElementById("player-card-modal").classList.remove("hidden");
+        }
+
+        function closeProfileCard() {
+            document.getElementById("player-card-modal").classList.add("hidden");
+        }
+
+        function toggleTheme() {
+            playerStats.theme = playerStats.theme === 'dark' ? 'light' : 'dark';
+            saveStats(); applyThemeUI();
+        }
+
+        function applyThemeUI() {
+            const container = document.getElementById("main-container");
+            const themeIcon = document.getElementById("theme-btn-icon");
+            if (playerStats.theme === 'light') {
+                container.className = container.className.replace("theme-dark", "theme-light");
+                themeIcon.className = "fa-solid fa-moon text-indigo-500";
+            } else {
+                container.className = container.className.replace("theme-light", "theme-dark");
+                themeIcon.className = "fa-solid fa-sun text-amber-400";
+            }
+        }
+
+        function showStartMenu() {
+            document.getElementById("game-over-modal").classList.add("hidden");
+            document.getElementById("start-menu-modal").classList.remove("hidden");
+            if (timerInterval) clearInterval(timerInterval);
+            isGameActive = false;
+            updateMenuData();
+        }
+
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            document.getElementById("start-menu-modal").classList.add("hidden");
+            if (diff === 'basic') { maxDigits = 3; allowedPool = ["1","2","3","4","5","6"]; }
+            else { maxDigits = 4; allowedPool = ["1","2","3","4","5","6","7","8","9"]; }
+            initGame();
+        }
+
+        function initGame() {
+            updateMenuData();
+            buildUIElements();
+            gizliSayi = rastgeleSayiUret();
+            console.log(`🔒 Gizli Sayı (${currentDifficulty}):`, gizliSayi);
+            currentGuess = []; movesCount = 0; totalSecondsSpent = 0; isGameActive = true;
+            
+            let config = getRankConfig(playerStats.level);
+            maxProMoves = config.maxMoves;
+            timeLeft = config.duration;
+
+            updateMoveText();
+            document.getElementById("history-container").innerHTML = `
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-xs italic" style="color: var(--text-muted);">
+                    <i class="fa-solid fa-flag text-2xl mb-2"></i>Seviye ${playerStats.level} Başladı! Tahminini yap.
+                </div>`;
+            setupTimer();
+        }
+
+        function buildUIElements() {
+            const wrapper = document.getElementById("cells-wrapper");
+            wrapper.innerHTML = "";
+            for (let i = 0; i < maxDigits; i++) {
+                wrapper.innerHTML += `<div id="cell-${i}" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all shadow-inner" style="background-color: var(--bg-card); border: 2px solid var(--border-color);"></div>`;
+            }
+
+            const kbContainer = document.getElementById("keyboard-container");
+            kbContainer.innerHTML = "";
+
+            if (currentDifficulty === 'basic') {
+                kbContainer.innerHTML = `
+                    <div class="grid grid-cols-6 gap-1.5">
+                        ${[1,2,3,4,5,6].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-0.5">
+                        <button id="btn-del" class="h-11 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
+                        <button id="btn-sub" class="h-11 bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>
+                    </div>
+                `;
+            } else {
+                kbContainer.innerHTML = `
+                    <div class="grid grid-cols-5 gap-1.5">
+                        ${[1,2,3,4,5].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-6 gap-1.5">
+                        ${[6,7,8,9].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`).join('')}
+                        <button id="btn-del" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
+                        <button id="btn-sub" class="h-12 bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>
+                    </div>
+                `;
+            }
+            bindTouchControls();
+        }
+
+        function rastgeleSayiUret() {
+            let pool = [...allowedPool]; let sonuc = "";
+            for (let i = 0; i < maxDigits; i++) { let rIdx = Math.floor(Math.random() * pool.length); sonuc += pool[rIdx]; pool.splice(rIdx, 1); }
+            return sonuc;
+        }
+
+        function setupTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const timerBox = document.getElementById("timer-box");
+            if (currentDifficulty === 'pro') {
+                document.getElementById("timer-text").innerText = `${timeLeft}s`;
+                timerBox.classList.remove("hidden"); timerBox.classList.add("flex");
+                timerInterval = setInterval(() => { 
+                    if (!isGameActive) return; 
+                    timeLeft--; 
+                    totalSecondsSpent++; 
+                    document.getElementById("timer-text").innerText = `${timeLeft}s`; 
+                    if (timeLeft <= 0) endGame(false, "Zaman Aşımı!"); 
+                }, 1000);
+            } else {
+                timerBox.classList.remove("flex"); timerBox.classList.add("hidden");
+                timerInterval = setInterval(() => { if (isGameActive) totalSecondsSpent++; }, 1000);
+            }
+        }
+
+        function updateMoveText() {
+            const container = document.getElementById("move-text-container");
+            container.innerHTML = currentDifficulty === 'pro' ? `Kalan: <span class="font-bold text-rose-500">${maxProMoves - movesCount}</span>` : `Hamle: <span class="font-bold text-orange-400">${movesCount}</span>`;
+        }
+
+        function inputDigit(digit) {
+            if (!isGameActive || currentGuess.length >= maxDigits) return;
+            if (currentGuess.includes(digit)) { triggerCellShake(); return; }
+            currentGuess.push(digit); updateInputCells();
+        }
+
+        function deleteDigit() { if (!isGameActive || currentGuess.length === 0) return; currentGuess.pop(); updateInputCells(); }
+
+        function updateInputCells() {
+            for (let i = 0; i < maxDigits; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                if (currentGuess[i]) { cell.innerText = currentGuess[i]; cell.style.borderColor = "#f59e0b"; } 
+                else { cell.innerText = ""; cell.style.borderColor = "var(--border-color)"; }
+            }
+        }
+
+        function submitGuess() {
+            if (!isGameActive || currentGuess.length !== maxDigits) { triggerCellShake(); return; }
+            const emptyState = document.getElementById("empty-state"); if (emptyState) emptyState.style.display = "none";
+            movesCount++; updateMoveText();
+            const tahminStr = currentGuess.join(""); let artiSkor = 0; let eksiSkor = 0;
+            for (let i = 0; i < maxDigits; i++) { if (tahminStr[i] === gizliSayi[i]) { artiSkor++; } else if (gizliSayi.includes(tahminStr[i])) { eksiSkor++; } }
+            renderHistoryRow(tahminStr, artiSkor, eksiSkor);
+            
+            if (artiSkor === maxDigits) { endGame(true); currentGuess = []; updateInputCells(); return; } 
+            if (currentDifficulty === 'pro' && movesCount >= maxProMoves) { endGame(false, "Hamle Sınırı!"); currentGuess = []; updateInputCells(); return; }
+            
+            if (currentDifficulty === 'pro') { 
+                let config = getRankConfig(playerStats.level);
+                timeLeft = config.duration; 
+                document.getElementById("timer-text").innerText = `${timeLeft}s`; 
+            }
+            currentGuess = []; updateInputCells();
+        }
+
+        function renderHistoryRow(tahmin, arti, eksi) {
+            const container = document.getElementById("history-container");
+            const row = document.createElement("div");
+            row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors";
+            row.style.backgroundColor = "var(--bg-card)";
+            row.style.borderColor = "var(--border-color)";
+
+            let cellsHtml = `<div class="flex gap-1">`;
+            for(let i=0; i<maxDigits; i++) {
+                cellsHtml += `<div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-base" style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i]}</div>`;
+            }
+            cellsHtml += `</div>`;
+
+            let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
+            if (arti === 0 && eksi === 0) { badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-500 border border-slate-500/20">0</span>`; } 
+            else {
+                if (eksi > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/20">-${eksi}</span>`;
+                if (arti > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+${arti}</span>`;
+            }
+            badgeHtml += `</div>`;
+            row.innerHTML = cellsHtml + badgeHtml; container.insertBefore(row, container.firstChild);
+        }
+
+        function endGame(isWin, reason = "") {
+            isGameActive = false; if (timerInterval) clearInterval(timerInterval); lastResultWin = isWin;
+            const modalTitle = document.getElementById("modal-title"); const modalSubtitle = document.getElementById("modal-subtitle");
+            const iconContainer = document.getElementById("modal-icon-container"); const iconMain = document.getElementById("modal-icon-main");
+            const actionBtn = document.getElementById("modal-action-btn"); const yuanDetayNode = document.getElementById("modal-puan-detay");
+            document.getElementById("modal-diff-text").innerText = currentDifficulty; document.getElementById("modal-diff-spec").innerText = currentDifficulty;
+            document.getElementById("modal-moves").innerText = movesCount; document.getElementById("modal-total-time-spent").innerText = `${totalSecondsSpent}s`;
+
+            if (isWin) {
+                let tahminPuani = 160 - ((movesCount - 1) * 10); if (tahminPuani < 0) tahminPuani = 0;
+                let harcananOnSaniye = Math.floor(totalSecondsSpent / 10); let zamanPuani = Math.max(0, 60 - harcananOnSaniye);
+                let toplamKazanilanPuan = tahminPuani + zamanPuani;
+                playerStats.score += toplamKazanilanPuan; saveStats();
+                document.getElementById("puan-tahmin").innerText = `+${tahminPuani}`; document.getElementById("puan-zaman").innerText = `+${zamanPuani}`; document.getElementById("puan-toplam").innerText = `+${toplamKazanilanPuan}`;
+                yuanDetayNode.style.display = "block"; modalTitle.innerText = "Başarılı!"; modalTitle.className = "text-xl font-black text-emerald-400";
+                modalSubtitle.innerText = `Sayıyı çözdün!`; iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-xl text-emerald-400"; iconMain.className = "fa-solid fa-circle-check";
+                actionBtn.innerHTML = `Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-xs"></i>`;
+            } else {
+                yuanDetayNode.style.display = "none"; modalTitle.innerText = "Başaramadın!"; modalTitle.className = "text-xl font-black text-red-500";
+                modalSubtitle.innerText = `Gizli Sayı: ${gizliSayi} (${reason})`; iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-xl text-red-400"; iconMain.className = "fa-solid fa-triangle-exclamation";
+                actionBtn.innerHTML = `Tekrar Dene <i class="fa-solid fa-rotate-right ml-1 text-xs"></i>`;
+            }
+            document.getElementById("game-over-modal").classList.remove("hidden");
+        }
+
+        // 🏆 SEVİYE ATLARKEN UNVAN DEĞİŞİM KONTROLÜ
+        function nextLevelOrRestart() {
+            document.getElementById("game-over-modal").classList.add("hidden");
+            if (lastResultWin) {
+                let oldConfig = getRankConfig(playerStats.level);
+                
+                if (playerStats.level < MAX_LEVELS) playerStats.level++;
+                else playerStats.level = 1;
+                saveStats();
+
+                let newConfig = getRankConfig(playerStats.level);
+
+                // Eğer seviye atlayınca yeni bir UNVAN/KADEME kazanıldıysa özlü söz kutlamasını aç!
+                if (oldConfig.name !== newConfig.name) {
+                    triggerRankCelebration(newConfig);
+                    return; // initGame'i kutlama kapanınca tetikleyeceğiz
+                }
+            }
+            initGame();
+        }
+
+        // 📜 KUTLAMA EKRANINI DOLDURMA VE AÇMA
+        function triggerRankCelebration(config) {
+            document.getElementById("celeb-rank-name").innerText = config.name;
+            document.getElementById("celeb-quote").innerText = config.quote;
+
+            const celebEmoji = document.getElementById("celeb-avatar-emoji");
+            const celebImg = document.getElementById("celeb-avatar-img");
+
+            if (config.isImg) {
+                celebEmoji.classList.add("hidden"); celebImg.classList.remove("hidden"); celebImg.src = config.file;
+            } else {
+                celebImg.classList.add("hidden"); celebEmoji.classList.remove("hidden"); celebEmoji.innerText = config.emoji;
+            }
+
+            document.getElementById("rank-celebration-modal").classList.remove("hidden");
+        }
+
+        function closeCelebration() {
+            document.getElementById("rank-celebration-modal").classList.add("hidden");
+            initGame(); // Oyunu şimdi güvenle başlat
+        }
+
+        function triggerCellShake() { for (let i = 0; i < maxDigits; i++) { const cell = document.getElementById(`cell-${i}`); if(cell) { cell.classList.add("animate-pulse"); setTimeout(() => cell.classList.remove("animate-pulse"), 200); } } }
+
+        function bindTouchControls() {
+            document.getElementById("btn-del").addEventListener("touchstart", (e) => { e.preventDefault(); deleteDigit(); });
+            document.getElementById("btn-sub").addEventListener("touchstart", (e) => { e.preventDefault(); submitGuess(); });
+
+            allowedPool.forEach(n => {
+                const key = document.getElementById(`key-${n}`); if (!key) return;
+                key.clickState = 0; let touchStartTime = 0; let touchTimer = null; let isLongPress = false;
+
+                key.addEventListener("touchstart", (e) => { e.preventDefault(); isLongPress = false; touchStartTime = Date.now(); touchTimer = setTimeout(() => { isLongPress = true; triggerLongPress(key, n); }, 400); });
+                key.addEventListener("touchend", (e) => { e.preventDefault(); clearTimeout(touchTimer); if (!isLongPress && (Date.now() - touchStartTime < 400)) { inputDigit(n); } });
+            });
+        }
+
+        function triggerLongPress(key, digit) {
+            if (!isGameActive) return;
+            key.clickState = (key.clickState + 1) % 3;
+            key.classList.remove("key-neutral", "key-red", "key-green");
+            if (key.clickState === 1) key.classList.add("key-red");
+            else if (key.clickState === 2) key.classList.add("key-green");
+            else key.classList.add("key-neutral");
+            if (navigator.vibrate) navigator.vibrate(40);
+        }
+
+        function useJoker(type) {
+            if (!isGameActive) return;
+            if (type === 'ele') {
+                if (playerStats.score < 100) { alert("Yetersiz Puan!"); return; }
+                let olmayanlar = allowedPool.filter(n => !gizliSayi.includes(n)).filter(n => document.getElementById(`key-${n}`).clickState !== 1);
+                if (olmayanlar.length === 0) { alert("Elenecek rakam kalmadı!"); return; }
+                playerStats.score -= 100; saveStats(); updateMenuData();
+                let secilen = olmayanlar[Math.floor(Math.random() * olmayanlar.length)];
+                const key = document.getElementById(`key-${secilen}`); if (key) { key.clickState = 1; key.classList.remove("key-neutral", "key-green"); key.classList.add("key-red"); }
+            } else if (type === 'fisilda') {
+                if (playerStats.score < 200) { alert("Yetersiz Puan!"); return; }
+                let buluncaklar = gizliSayi.split("").filter(n => document.getElementById(`key-${n}`).clickState !== 2);
+                if (buluncaklar.length === 0) { alert("Tüm rakamları buldun!"); return; }
+                playerStats.score -= 200; saveStats(); updateMenuData();
+                let secilen = buluncaklar[Math.floor(Math.random() * buluncaklar.length)];
+                const key = document.getElementById(`key-${secilen}`); if (key) { key.clickState = 2; key.classList.remove("key-neutral", "key-red"); key.classList.add("key-green"); }
+                alert(`Fısıltı: Gizli sayıda "${secilen}" rakamı var!`);
+            } else if (type === 'basamak') {
+                if (playerStats.score < 500) { alert("Yetersiz Puan!"); return; }
+                let acilmamis = []; for (let i = 0; i < maxDigits; i++) { if (document.getElementById(`cell-${i}`).innerText === "") acilmamis.push(i); }
+                playerStats.score -= 500; saveStats(); updateMenuData();
+                let targetIdx = acilmamis.length > 0 ? acilmamis[Math.floor(Math.random() * acilmamis.length)] : Math.floor(Math.random() * maxDigits);
+                let tamRakam = gizliSayi[targetIdx]; let basamakAdi = ["1. Basamak", "2. Basamak", "3. Basamak", "4. Basamak"][targetIdx];
+                const key = document.getElementById(`key-${tamRakam}`); if (key) { key.clickState = 2; key.classList.remove("key-neutral", "key-red"); key.classList.add("key-green"); }
+                alert(`TAM İSABET! 👉 ${basamakAdi} rakamı: "${tamRakam}"`);
+            }
+        }
+        window.onload = showStartMenu;
+    </script>
+</body>
+</html>
