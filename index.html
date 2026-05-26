@@ -574,14 +574,19 @@
 /* ════════════════════════════════════════════════
    §1 · CONFIG & CONSTANTS
 ════════════════════════════════════════════════ */
-const FIREBASE_CONFIG = {
-    apiKey:            "AIzaSyDYRY3ZlQEjZUsZgjQ7487xmsFQWY_HI",
-    authDomain:        "pvp-fafdd.firebaseapp.com",
-    databaseURL:       "https://pvp-fafdd-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:         "pvp-fafdd",
-    storageBucket:     "pvp-fafdd.appspot.com",
-    messagingSenderId: "753201215044",
-    appId:             "1:753201215044:web:b82ebfc0b6c16d16142e11"
+// 🔮 FIREBASE CONFIG (image_c09985.png EKRANINDAKİ %100 ORİJİNAL VE EKSİKSİZ VERİLER)
+        const firebaseConfig = {
+            apiKey:            "AIzaSyDYRY3ZlQEjZUsZgJQ7487xmsFQWY_HI",
+            authDomain:        "pvp-fafdd.firebaseapp.com",
+            databaseURL:       "https://pvp-fafdd-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId:         "pvp-fafdd",
+            storageBucket:     "pvp-fafdd.firebasestorage.app",
+            messagingSenderId: "753201215044",
+            appId:             "1:753201215044:web:b82ebfc0b6c16d16142e11"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 };
 
 const MAX_LEVELS   = 3024;
