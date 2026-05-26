@@ -351,19 +351,19 @@
                 class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer"
                 style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
             <span class="block font-bold">🔍 Ele <span id="stok-ele" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
-            <span class="font-mono text-red-500 font-bold">100 P</span>
+            <span class="font-mono text-red-500 font-bold">500 P</span>
         </button>
         <button id="btn-joker-fisilda"
                 class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer"
                 style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
             <span class="block font-bold">💬 Bul <span id="stok-fisilda" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
-            <span class="font-mono text-amber-500 font-bold">200 P</span>
+            <span class="font-mono text-amber-500 font-bold">750 P</span>
         </button>
         <button id="btn-joker-basamak"
                 class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer"
                 style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
             <span class="block font-bold">🎯 Aç <span id="stok-basamak" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
-            <span class="font-mono text-emerald-500 font-bold">500 P</span>
+            <span class="font-mono text-emerald-500 font-bold">1000 P</span>
         </button>
     </div>
 
@@ -422,7 +422,8 @@
                 </div>
                 <div id="modal-puan-detay" class="space-y-1 pt-2 border-t border-slate-800">
                     <div class="flex justify-between text-amber-400"><span>🎯 Tahmin Puanı:</span><span id="puan-tahmin">+0</span></div>
-                    <div class="flex justify-between text-sky-400"><span>⏱️ Zaman Puanı:</span><span id="puan-zaman">+0</span></div>
+                    <div class="flex justify-between text-sky-400"><span>⏱️ Zaman Bonusu:</span><span id="puan-zaman">+0</span></div>
+                    <div id="puan-seviye-row" class="flex justify-between text-violet-400"><span>⭐ Seviye Bonusu:</span><span id="puan-seviye">+0</span></div>
                     <div class="flex justify-between text-emerald-400 text-xs font-black pt-1 border-t border-dashed border-slate-700">
                         <span>🎉 Toplam Puan:</span><span id="puan-toplam">+0</span>
                     </div>
@@ -1173,12 +1174,48 @@ const GameLogic = {
         timers.clear();
 
         if (isWin) {
-            const tahminPuani = Math.max(0, 160 - ((gameState.movesCount - 1) * 10));
-            const zamanPuani  = Math.max(0, 60 - Math.floor(gameState.totalSecondsSpent / 10));
-            const toplam      = tahminPuani + zamanPuani;
+            const diff  = gameState.difficulty;
+            const level = playerStats.level;
+            const moves = gameState.movesCount;
+            const secs  = gameState.totalSecondsSpent;
+
+            let tahminPuani = 0;
+            let zamanPuani  = 0;
+            let seviyePuani = 0;
+
+            if (diff === "basic") {
+                // Basic: sıfır puan — sadece level/joker kazanılır
+                tahminPuani = 0;
+                zamanPuani  = 0;
+                seviyePuani = 0;
+
+            } else if (diff === "medium") {
+                // Medium: hamle bazlı puan, seviye çarpanı YOK
+                // Maks 200 → her ekstra hamlede -15, minimum 20
+                tahminPuani = Math.max(20, 200 - ((moves - 1) * 15));
+                // Zaman bonusu: 60 saniyenin altındaysa bonus
+                zamanPuani  = secs < 60  ? 50 :
+                              secs < 120 ? 25 :
+                              secs < 180 ? 10 : 0;
+                seviyePuani = 0;
+
+            } else if (diff === "pro") {
+                // Pro: hamle bazlı puan + zaman bonusu + seviye çarpanı
+                // Temel: maks 300, her hamlede -20
+                const base  = Math.max(50, 300 - ((moves - 1) * 20));
+                // Zaman bonusu (pro'da süre kısıtlı, her saniye değerli)
+                const cfg   = getRankConfig(level);
+                const ratio = Math.max(0, 1 - (secs / cfg.duration));
+                tahminPuani = base;
+                zamanPuani  = Math.round(ratio * 150);
+                // Seviye çarpanı: level * 5 (level 1=5p, level 10=50p ek bonus)
+                seviyePuani = level * 5;
+            }
+
+            const toplam = tahminPuani + zamanPuani + seviyePuani;
             playerStats.score += toplam;
             saveStats();
-            UI.showGameOverModal({ isWin: true, tahminPuani, zamanPuani, toplam });
+            UI.showGameOverModal({ isWin: true, tahminPuani, zamanPuani, seviyePuani, toplam, diff });
         } else {
             UI.showGameOverModal({ isWin: false, reason });
         }
@@ -1191,7 +1228,7 @@ const GameLogic = {
 
         const winStatus = (data.winner === gameState.myRole);
         if (winStatus) {
-            playerStats.score += 499;
+            playerStats.score += 750; // PvP zafer puanı
             saveStats();
         }
         UI.showPvPGameOverModal({
@@ -1208,7 +1245,12 @@ const GameLogic = {
         if (gameState.lastResultWin) {
             const oldConfig   = getRankConfig(playerStats.level);
             playerStats.level = playerStats.level < MAX_LEVELS ? playerStats.level + 1 : 1;
-            playerStats.score += 500;
+
+            // Basic'te seviye puan bonusu yok; medium/pro'da var
+            if (gameState.difficulty !== "basic") {
+                playerStats.score += 500;
+            }
+            // Joker her modda kazanılır
             playerStats.jokers.ele++;
             playerStats.jokers.fisilda++;
             playerStats.jokers.basamak++;
@@ -1289,7 +1331,7 @@ const GameLogic = {
 
     useJoker(type) {
         if (!gameState.isActive) return;
-        const costs = { ele: 100, fisilda: 200, basamak: 500 };
+        const costs = { ele: 500, fisilda: 750, basamak: 1000 };
 
         if (playerStats.jokers[type] > 0) {
             playerStats.jokers[type]--;
@@ -1681,7 +1723,7 @@ const UI = {
         }
     },
 
-    showGameOverModal({ isWin, tahminPuani = 0, zamanPuani = 0, toplam = 0, reason = "" }) {
+    showGameOverModal({ isWin, tahminPuani = 0, zamanPuani = 0, seviyePuani = 0, toplam = 0, reason = "", diff = "" }) {
         this.el("modal-diff-text").textContent        = gameState.difficulty;
         this.el("modal-diff-spec").textContent        = gameState.difficulty;
         this.el("modal-moves").textContent            = gameState.movesCount;
@@ -1700,10 +1742,23 @@ const UI = {
             title.textContent       = "Başarılı!";
             title.className         = "text-xl font-black text-emerald-400";
             subtitle.textContent    = "Sayıyı çözdün!";
-            puanDetay.style.display = "block";
-            this.el("puan-tahmin").textContent = `+${tahminPuani}`;
-            this.el("puan-zaman").textContent  = `+${zamanPuani}`;
-            this.el("puan-toplam").textContent = `+${toplam}`;
+            if (diff === "basic") {
+                // Basic: puan detayı gösterme, sadece "Joker kazandın" mesajı
+                puanDetay.style.display = "none";
+                subtitle.textContent = "Tebrikler! Jokerler envanterine eklendi.";
+            } else {
+                puanDetay.style.display = "block";
+                this.el("puan-tahmin").textContent = `+${tahminPuani}`;
+                this.el("puan-zaman").textContent  = `+${zamanPuani}`;
+                // Seviye puanı satırını dinamik güncelle
+                const seviyeRow = this.el("puan-seviye-row");
+                if (seviyeRow) {
+                    seviyeRow.style.display = seviyePuani > 0 ? "flex" : "none";
+                    const seviyeEl = this.el("puan-seviye");
+                    if (seviyeEl) seviyeEl.textContent = `+${seviyePuani}`;
+                }
+                this.el("puan-toplam").textContent = `+${toplam}`;
+            }
             actionBtn.innerHTML = `Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-xs"></i>`;
         } else {
             iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-xl text-red-400";
