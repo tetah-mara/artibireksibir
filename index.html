@@ -738,21 +738,45 @@ async function checkAndSaveUsername() {
 }
 
 async function fbLoadLeaderboard() {
+    const listContainer = document.getElementById("leaderboard-list-container");
+    listContainer.innerHTML = `<div class="flex items-center justify-center py-8 text-slate-500 text-xs">
+        <div class="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+        Yükleniyor...
+    </div>`;
+    UI.modal.show("leaderboard-modal");
+
     try {
+        // Tüm kullanıcıları çek, client-side sırala (index gerektirmez)
         const snap = await firebaseRefs.db
             .ref("kullanicilar")
-            .orderByChild("score")
-            .limitToLast(30)
             .once("value");
 
-        const listContainer = document.getElementById("leaderboard-list-container");
         listContainer.innerHTML = "";
 
-        const users = [];
-        snap.forEach((child) => users.push(child.val()));
-        users.reverse();
+        if (!snap.exists()) {
+            listContainer.innerHTML = `<div class="text-center text-slate-500 text-xs py-8">Henüz kayıt yok.</div>`;
+            return;
+        }
 
-        users.forEach((u, index) => {
+        // Tüm kayıtları diziye al
+        const users = [];
+        snap.forEach((child) => {
+            const val = child.val();
+            if (val && val.username) {          // username yoksa tamamlanmamış kayıt
+                users.push(val);
+            }
+        });
+
+        if (users.length === 0) {
+            listContainer.innerHTML = `<div class="text-center text-slate-500 text-xs py-8">Henüz kayıt yok.</div>`;
+            return;
+        }
+
+        // Puana göre büyükten küçüğe sırala
+        users.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        // En fazla 30 göster
+        users.slice(0, 30).forEach((u, index) => {
             const row = document.createElement("div");
             row.className = `flex items-center justify-between p-2.5 rounded-xl border ${
                 u.uid === playerStats.uid
@@ -760,30 +784,33 @@ async function fbLoadLeaderboard() {
                     : "bg-slate-950/40 border-slate-800"
             }`;
 
-            let rankBadge = `<span class="w-5 text-slate-500 font-bold">${index + 1}.</span>`;
-            if (index === 0) rankBadge = `<span class="w-5 text-amber-400 font-black">🥇</span>`;
-            if (index === 1) rankBadge = `<span class="w-5 text-slate-300 font-black">🥈</span>`;
-            if (index === 2) rankBadge = `<span class="w-5 text-orange-400 font-black">🥉</span>`;
+            let rankBadge = `<span class="w-5 text-slate-500 font-bold text-[10px]">${index + 1}.</span>`;
+            if (index === 0) rankBadge = `<span class="w-5 font-black">🥇</span>`;
+            if (index === 1) rankBadge = `<span class="w-5 font-black">🥈</span>`;
+            if (index === 2) rankBadge = `<span class="w-5 font-black">🥉</span>`;
 
             const userPhoto = u.googlePhoto
-                ? `<img src="${u.googlePhoto}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-700">`
+                ? `<img src="${u.googlePhoto}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-700" onerror="this.outerHTML='<span class=\'text-xs\'>👤</span>'">`
                 : `<span class="text-xs">👤</span>`;
+
+            const rankName = getRankConfig(u.level || 1).name;
 
             row.innerHTML = `
                 <div class="flex items-center gap-2 truncate">
                     ${rankBadge}
                     ${userPhoto}
-                    <span class="font-bold truncate ${u.uid === playerStats.uid ? "text-amber-400" : "text-slate-200"}">@${u.username || "anonim"}</span>
-                    <span class="text-[9px] px-1 bg-slate-800 rounded text-slate-400">LVL ${u.level || 1}</span>
+                    <div class="truncate">
+                        <span class="font-bold truncate block ${u.uid === playerStats.uid ? "text-amber-400" : "text-slate-200"}">@${u.username}</span>
+                        <span class="text-[8px] text-slate-500">${rankName} · LVL ${u.level || 1}</span>
+                    </div>
                 </div>
-                <div class="font-black text-emerald-400">${u.score || 0} P</div>`;
+                <div class="font-black text-emerald-400 shrink-0 ml-2">${(u.score || 0).toLocaleString()} P</div>`;
             listContainer.appendChild(row);
         });
 
-        UI.modal.show("leaderboard-modal");
     } catch (err) {
         console.error("[Firebase] Skor tablosu yüklenemedi:", err);
-        UI.showError("Skor tablosu yüklenemedi. İnternet bağlantınızı kontrol edin.");
+        listContainer.innerHTML = `<div class="text-center text-red-400 text-xs py-8">Yüklenemedi. Tekrar deneyin.</div>`;
     }
 }
 
