@@ -17,7 +17,7 @@
         .theme-light { --bg-main: #f1f5f9; --bg-card: #ffffff; --bg-kb: #e2e8f0; --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; }
         .key-neutral { background-color: var(--bg-card) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; font-weight: bold !important; }
         .key-red { background-color: #7f1d1d !important; color: #fca5a5 !important; border-color: #b91c1c !important; text-decoration: line-through !important; font-weight: bold !important; }
-        .key-green { background-color: #047857 !important; color: #ffffff !important; border-color: #10b981 !important; font-weight: 900 !important; }
+        .key-green { background-color: #047857 !important; color: #ffffff !important; border-color: #10b981 !important; text-decoration: none !important; font-weight: 900 !important; }
     </style>
 </head>
 <body class="flex items-center justify-center h-full w-full p-0 select-none m-0 transition-colors duration-300">
@@ -140,16 +140,16 @@
 
         <div id="joker-bar" class="p-1.5 rounded-2xl flex justify-between items-center shrink-0 gap-1.5 text-[11px]" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
             <button onclick="useJoker('ele')" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
-                <span class="block font-bold">🔍 1 Rakam Ele</span>
-                <span class="font-mono text-red-500 font-bold">100 Puan</span>
+                <span class="block font-bold">🔍 Ele <span id="stok-ele" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
+                <span class="font-mono text-red-500 font-bold">100 P</span>
             </button>
             <button onclick="useJoker('fisilda')" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
-                <span class="block font-bold">💬 Rakam Bul</span>
-                <span class="font-mono text-amber-500 font-bold">200 Puan</span>
+                <span class="block font-bold">💬 Bul <span id="stok-fisilda" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
+                <span class="font-mono text-amber-500 font-bold">200 P</span>
             </button>
             <button onclick="useJoker('basamak')" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
-                <span class="block font-bold">🎯 Basamak Aç</span>
-                <span class="font-mono text-emerald-500 font-bold">500 Puan</span>
+                <span class="block font-bold">🎯 Aç <span id="stok-basamak" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
+                <span class="font-mono text-emerald-500 font-bold">500 P</span>
             </button>
         </div>
 
@@ -184,17 +184,21 @@
         </div>
 
         <div id="rank-celebration-modal" class="hidden absolute inset-0 bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div class="w-full max-w-sm text-center space-y-6">
+            <div class="w-full max-w-sm text-center space-y-5">
                 <div class="text-amber-400 text-xs font-mono tracking-widest uppercase font-bold animate-pulse">Yeni Deha Unvanı Kazanıldı!</div>
-                <div class="w-36 h-36 mx-auto rounded-full border-4 border-amber-500/80 overflow-hidden bg-slate-900 shadow-2xl shadow-amber-500/10">
+                <div class="w-34 h-34 mx-auto rounded-full border-4 border-amber-500/80 overflow-hidden bg-slate-900 shadow-2xl shadow-amber-500/10">
                     <span id="celeb-avatar-emoji" class="text-6xl flex h-full items-center justify-center">👤</span>
                     <img id="celeb-avatar-img" src="" class="hidden w-full h-full object-cover">
                 </div>
                 <div class="space-y-1">
                     <h3 id="celeb-rank-name" class="text-3xl font-black text-amber-400 tracking-tight">-</h3>
-                    <p class="text-xs text-slate-500 font-mono">Unvan Seviyesi Aktifleşti</p>
+                    <p class="text-xs text-slate-400 font-mono">Unvan Seviyesi Aktifleşti</p>
                 </div>
-                <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-800 text-slate-300 italic text-sm font-medium leading-relaxed max-w-xs mx-auto">
+                <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2.5 rounded-2xl text-xs font-mono font-bold max-w-xs mx-auto space-y-1">
+                    <div>🎁 Seviye Ödülü: <span class="text-white">+500 Puan!</span></div>
+                    <div class="text-[10px] text-slate-400">Tüm jokerlerden +1 adet envanterine eklendi!</div>
+                </div>
+                <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 text-slate-300 italic text-xs font-medium leading-relaxed max-w-xs mx-auto">
                     " <span id="celeb-quote">Söz</span> "
                 </div>
                 <button onclick="closeCelebration()" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all active:scale-95 cursor-pointer shadow-md">
@@ -204,39 +208,45 @@
         </div>
 
         <div id="player-card-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50" onclick="closeProfileCard()">
-            <div class="bg-slate-900 border-2 border-slate-800 p-6 rounded-3xl w-full max-w-xs text-center shadow-2xl space-y-5" onclick="event.stopPropagation()">
+            <div class="bg-slate-900 border-2 border-slate-800 p-6 rounded-3xl w-full max-w-xs text-center shadow-2xl space-y-4" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                     <span class="text-xs font-mono text-slate-400">Kullanıcı Sicili</span>
                     <button onclick="closeProfileCard()" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="w-20 h-20 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center shadow-md">
-                    <span id="card-avatar-emoji" class="text-3xl">👤</span>
+                <div class="w-18 h-18 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center shadow-md">
+                    <span id="card-avatar-emoji" class="text-2xl">👤</span>
                     <img id="card-avatar-img" src="" class="hidden w-full h-full object-cover">
                 </div>
-                <div class="space-y-4 font-mono">
-                    <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80">
-                        <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider">Mevcut Kademe</span>
-                        <span id="card-rank-name" class="text-base font-black text-amber-400">-</span>
+                <div class="space-y-3 font-mono text-left">
+                    <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80 text-center">
+                        <span class="block text-[9px] text-slate-500 uppercase font-bold tracking-wider">Mevcut Kademe</span>
+                        <span id="card-rank-name" class="text-sm font-black text-amber-400">-</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase">Seviye</span>
-                            <span id="card-level-val" class="text-lg font-black text-white">1</span>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                        <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80">
+                            <span class="block text-[9px] text-slate-500 font-bold">SEVİYE</span>
+                            <span id="card-level-val" class="text-base font-black text-white">1</span>
                         </div>
-                        <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase">Cüzdan</span>
-                            <span id="card-score-val" class="text-lg font-black text-emerald-400">0</span>
+                        <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80">
+                            <span class="block text-[9px] text-slate-500 font-bold">CÜZDAN</span>
+                            <span id="card-score-val" class="text-base font-black text-emerald-400">0</span>
                         </div>
+                    </div>
+                    <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 space-y-1 text-[10px]">
+                        <span class="block text-[9px] text-slate-500 font-bold uppercase mb-1">Hediye Joker Envanteri</span>
+                        <div class="flex justify-between"><span>🔍 Ele Jokeri:</span><span id="card-ele-val" class="font-bold text-white">0 Adet</span></div>
+                        <div class="flex justify-between"><span>💬 Bul Jokeri:</span><span id="card-fisilda-val" class="font-bold text-white">0 Adet</span></div>
+                        <div class="flex justify-between"><span>🎯 Aç Jokeri:</span><span id="card-basamak-val" class="font-bold text-white">0 Adet</span></div>
                     </div>
                 </div>
-                <p class="text-[10px] text-slate-500 italic">Geliştirici: Tetah Mara Dev Team 2026</p>
+                <p class="text-[9px] text-slate-500 italic">Tetah Mara Dev Team 2026</p>
             </div>
         </div>
 
     </div>
 
     <script>
-        // 🔮 FIREBASE ENTEGRASYON BİLGİLERİ (SENİN PROJENE GÖRE TAM SENKRONİZE EDİLDİ)
+        // 🔮 FIREBASE ENTEGRASYON BİLGİLERİ
         const firebaseConfig = {
             apiKey: "AIzaSyDYRY3ZlQEjZUsZgjQ7487xmsFQWY_HI",
             authDomain: "pvp-fafdd.firebaseapp.com",
@@ -250,13 +260,23 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let playerStats = { level: 1, score: 0, theme: 'dark', uid: 'user_' + Math.random().toString(36).substr(2, 9) };
+        // Stoklu Envanter Hafızası Tanımlandı
+        let playerStats = { 
+            level: 1, 
+            score: 0, 
+            theme: 'dark', 
+            uid: 'user_' + Math.random().toString(36).substr(2, 9),
+            jokers: { ele: 1, fisilda: 1, basamak: 1 } // Başlangıçta hediye 1'er adet
+        };
+
         if (localStorage.getItem("plusMinus_playerStats")) {
             let loaded = JSON.parse(localStorage.getItem("plusMinus_playerStats"));
             playerStats.level = loaded.level || 1;
             playerStats.score = loaded.score || 0;
             playerStats.theme = loaded.theme || 'dark';
             if(loaded.uid) playerStats.uid = loaded.uid;
+            if(loaded.jokers) playerStats.jokers = loaded.jokers;
+            else playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
         }
 
         const MAX_LEVELS = 3024; 
@@ -276,7 +296,7 @@
         // PvP Değişkenleri
         let isPvP = false;
         let roomCode = null;
-        let myRole = null; // 'creator' veya 'joiner'
+        let myRole = null; 
         let pvpGameStateRef = null;
 
         function getRankConfig(level) {
@@ -297,6 +317,11 @@
             document.getElementById("top-score-text").innerText = playerStats.score;
             document.getElementById("badge-level").innerText = `LVL ${playerStats.level}`;
             
+            // Stok göstergelerini güncelle
+            document.getElementById("stok-ele").innerText = `(${playerStats.jokers.ele})`;
+            document.getElementById("stok-fisilda").innerText = `(${playerStats.jokers.fisilda})`;
+            document.getElementById("stok-basamak").innerText = `(${playerStats.jokers.basamak})`;
+
             let config = getRankConfig(playerStats.level);
             document.getElementById("menu-rank-name").innerText = config.name;
             document.getElementById("top-rank-name").innerText = config.name;
@@ -322,6 +347,12 @@
             document.getElementById("card-rank-name").innerText = config.name;
             document.getElementById("card-level-val").innerText = playerStats.level;
             document.getElementById("card-score-val").innerText = playerStats.score;
+            
+            // Stok adetlerini RPG kartına bas
+            document.getElementById("card-ele-val").innerText = `${playerStats.jokers.ele} Adet`;
+            document.getElementById("card-fisilda-val").innerText = `${playerStats.jokers.fisilda} Adet`;
+            document.getElementById("card-basamak-val").innerText = `${playerStats.jokers.basamak} Adet`;
+
             const cardEmoji = document.getElementById("card-avatar-emoji");
             const cardImg = document.getElementById("card-avatar-img");
             if(config.isImg) { cardEmoji.classList.add("hidden"); cardImg.classList.remove("hidden"); cardImg.src = config.file; } 
@@ -345,7 +376,6 @@
             isGameActive = false; isPvP = false;
             document.getElementById("pvp-turn-badge").classList.add("hidden");
             document.getElementById("normal-score-badge").classList.remove("hidden");
-            document.getElementById("joker-bar").classList.remove("opacity-40", "pointer-events-none");
             updateMenuData();
         }
 
@@ -358,7 +388,7 @@
         }
 
         // ==========================================
-        // ⚔️ PVP MODÜLÜ KODLARI
+        // ⚔️ PvP MODÜLÜ MANTIKSAL KURGUSU
         // ==========================================
         function openPvPMenu() {
             document.getElementById("pvp-initial-actions").classList.remove("hidden");
@@ -366,9 +396,7 @@
             document.getElementById("pvp-secret-select-screen").classList.add("hidden");
             document.getElementById("pvp-setup-modal").classList.remove("hidden");
         }
-        function closePvPMenu() {
-            document.getElementById("pvp-setup-modal").classList.add("hidden");
-        }
+        function closePvPMenu() { document.getElementById("pvp-setup-modal").classList.add("hidden"); }
 
         function createPvPRoom() {
             roomCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -391,7 +419,6 @@
             document.getElementById("displayed-room-code").innerText = roomCode;
             document.getElementById("pvp-waiting-screen").classList.remove("hidden");
 
-            // Canlı Değişimleri Dinleme Ana Döngüsü
             pvpGameStateRef.on('value', (snapshot) => {
                 let data = snapshot.val();
                 if (!data) return;
@@ -402,31 +429,23 @@
                 }
                 
                 if (data.status === 'playing') {
-                    if (!isGameActive || !isPvP) {
-                        closePvPMenu();
-                        startPvPGamePlay(data);
-                    } else {
+                    if (!isGameActive || !isPvP) { closePvPMenu(); startPvPGamePlay(data); } 
+                    else {
                         handleTurnUI(data.turn);
                         if (data.lastGuess && data.lastGuess !== '') {
                             const rowId = `guess-${data.lastGuess}`;
-                            if (!document.getElementById(rowId)) {
-                                renderHistoryRowPvP(data.lastGuess, data.lastGuessResult, data.turn !== myRole);
-                            }
+                            if (!document.getElementById(rowId)) { renderHistoryRowPvP(data.lastGuess, data.lastGuessResult, data.turn !== myRole); }
                         }
                     }
                 }
-                
-                if (data.status === 'ended' && isGameActive) {
-                    handlePvPEnd(data);
-                }
+                if (data.status === 'ended' && isGameActive) { handlePvPEnd(data); }
             });
         }
 
         function joinPvPRoom() {
             let code = document.getElementById("pvp-code-input").value.trim();
             if (code.length !== 4) { alert("Lütfen 4 haneli oda kodunu girin."); return; }
-            roomCode = code;
-            myRole = 'joiner';
+            roomCode = code; myRole = 'joiner';
             pvpGameStateRef = database.ref('odalar/' + roomCode);
 
             pvpGameStateRef.once('value', (snapshot) => {
@@ -434,34 +453,23 @@
                 if (!data) { alert("Oda bulunamadı! Kodu kontrol edin."); return; }
                 if (data.status !== 'waiting' || data.joinerId !== '') { alert("Bu oda zaten dolu veya oyun başlamış."); return; }
 
-                pvpGameStateRef.update({
-                    joinerId: playerStats.uid
-                });
-
+                pvpGameStateRef.update({ joinerId: playerStats.uid });
                 document.getElementById("pvp-initial-actions").classList.add("hidden");
                 document.getElementById("pvp-secret-select-screen").classList.remove("hidden");
 
                 pvpGameStateRef.on('value', (snapshot) => {
-                    let liveData = snapshot.val();
-                    if (!liveData) return;
-                    
+                    let liveData = snapshot.val(); if (!liveData) return;
                     if (liveData.status === 'playing') {
-                        if (!isGameActive || !isPvP) {
-                            closePvPMenu();
-                            startPvPGamePlay(liveData);
-                        } else {
+                        if (!isGameActive || !isPvP) { closePvPMenu(); startPvPGamePlay(liveData); } 
+                        else {
                             handleTurnUI(liveData.turn);
                             if (liveData.lastGuess && liveData.lastGuess !== '') {
                                 const rowId = `guess-${liveData.lastGuess}`;
-                                if (!document.getElementById(rowId)) {
-                                    renderHistoryRowPvP(liveData.lastGuess, liveData.lastGuessResult, liveData.turn !== myRole);
-                                }
+                                if (!document.getElementById(rowId)) { renderHistoryRowPvP(liveData.lastGuess, liveData.lastGuessResult, liveData.turn !== myRole); }
                             }
                         }
                     }
-                    if (liveData.status === 'ended' && isGameActive) {
-                        handlePvPEnd(liveData);
-                    }
+                    if (liveData.status === 'ended' && isGameActive) { handlePvPEnd(liveData); }
                 });
             });
         }
@@ -469,13 +477,10 @@
         function submitMySecretNumber() {
             let num = document.getElementById("pvp-my-secret-input").value.trim();
             if (num.length !== 4) { alert("Gizli sayı 4 basamaklı olmalıdır!"); return; }
-            if (new Set(num).size !== 4 || num.includes("0")) { alert("Rakamlar tekrarsız olmalı ve 0 içermemelidir!"); return; }
+            if (new Set(num).size !== 4 || num.includes("0")) { alert("Rakamlar tekrarsız olmalı ve 0 içermebelidir!"); return; }
 
-            if (myRole === 'creator') {
-                pvpGameStateRef.update({ creatorSecret: num });
-            } else {
-                pvpGameStateRef.update({ joinerSecret: num });
-            }
+            if (myRole === 'creator') { pvpGameStateRef.update({ creatorSecret: num }); } 
+            else { pvpGameStateRef.update({ joinerSecret: num }); }
 
             document.getElementById("pvp-secret-select-screen").innerHTML = `
                 <div class="py-4 text-center space-y-2">
@@ -486,38 +491,25 @@
 
             pvpGameStateRef.once('value', (snapshot) => {
                 let data = snapshot.val();
-                if (data.creatorSecret !== '' && data.joinerSecret !== '') {
-                    pvpGameStateRef.update({ status: 'playing' });
-                }
+                if (data.creatorSecret !== '' && data.joinerSecret !== '') { pvpGameStateRef.update({ status: 'playing' }); }
             });
         }
 
         function startPvPGamePlay(data) {
-            isPvP = true;
-            isGameActive = true;
-            currentDifficulty = 'PvP Düello';
-            maxDigits = 4;
-            allowedPool = ["1","2","3","4","5","6","7","8","9"];
-            currentGuess = [];
-            movesCount = 0;
-            totalSecondsSpent = 0;
-
+            isPvP = true; isGameActive = true; currentDifficulty = 'PvP Düello'; maxDigits = 4;
+            allowedPool = ["1","2","3","4","5","6","7","8","9"]; currentGuess = []; movesCount = 0; totalSecondsSpent = 0;
             gizliSayi = (myRole === 'creator') ? data.joinerSecret : data.creatorSecret;
 
             document.getElementById("start-menu-modal").classList.add("hidden");
             document.getElementById("normal-score-badge").classList.add("hidden");
-            document.getElementById("joker-bar").classList.add("opacity-40", "pointer-events-none"); 
-            document.getElementById("tactic-info-text").innerText = "⚔️ Online Düello Modu. Jokerler pasif durumdadır.";
+            document.getElementById("tactic-info-text").innerText = "⚔️ Online Düello Modu. Joker kullanımı serbesttir!";
 
-            buildUIElements();
-            updateMoveText();
-            setupTimer();
+            buildUIElements(); updateMoveText(); setupTimer();
 
             document.getElementById("history-container").innerHTML = `
                 <div id="empty-state" class="h-full flex flex-col items-center justify-center text-xs italic text-violet-400">
                     <i class="fa-solid fa-swords text-2xl mb-2 animate-bounce"></i>Düello Başladı! İlk doğru tahmini yapan kazanır.
                 </div>`;
-
             handleTurnUI(data.turn);
         }
 
@@ -539,41 +531,26 @@
             row.id = `guess-${tahmin}`;
             row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors";
             
-            if(isMyAction) {
-                row.style.backgroundColor = "rgba(99, 102, 241, 0.1)";
-                row.style.borderColor = "rgba(99, 102, 241, 0.4)";
-            } else {
-                row.style.backgroundColor = "var(--bg-card)";
-                row.style.borderColor = "var(--border-color)";
-            }
+            if(isMyAction) { row.style.backgroundColor = "rgba(99, 102, 241, 0.1)"; row.style.borderColor = "rgba(99, 102, 241, 0.4)"; } 
+            else { row.style.backgroundColor = "var(--bg-card)"; row.style.borderColor = "var(--border-color)"; }
 
             let cellsHtml = `<div class="flex items-center gap-2">`;
             cellsHtml += `<span class="text-[9px] font-mono font-bold px-1 rounded uppercase ${isMyAction ? 'bg-indigo-500 text-white':'bg-slate-800 text-slate-400'}">${isMyAction ? 'SİZ':'RAKİP'}</span>`;
             cellsHtml += `<div class="flex gap-1">`;
-            for(let i=0; i<4; i++) { 
-                cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-sm" style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i] || '?'}</div>`; 
-            }
+            for(let i=0; i<4; i++) { cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-sm" style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i] || '?'}</div>`; }
             cellsHtml += `</div></div>`;
 
             let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
-            if (sonucMetni === "+0 -0" || sonucMetni === "0") {
-                badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-500 border border-slate-500/20">0</span>`;
-            } else {
-                badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-violet-600/20 text-violet-400 border border-violet-500/30">${sonucMetni}</span>`;
-            }
+            if (sonucMetni === "+0 -0" || sonucMetni === "0") { badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-500 border border-slate-500/20">0</span>`; } 
+            else { badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-violet-600/20 text-violet-400 border border-violet-500/30">${sonucMetni}</span>`; }
             badgeHtml += `</div>`;
             
-            row.innerHTML = cellsHtml + badgeHtml; 
-            container.insertBefore(row, container.firstChild);
+            row.innerHTML = cellsHtml + badgeHtml; container.insertBefore(row, container.firstChild);
         }
 
         function handlePvPEnd(data) {
-            isGameActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-            if(pvpGameStateRef) pvpGameStateRef.off(); 
-            
-            let winStatus = false;
-            if (data.winner === myRole) winStatus = true;
+            isGameActive = false; if (timerInterval) clearInterval(timerInterval); if(pvpGameStateRef) pvpGameStateRef.off(); 
+            let winStatus = (data.winner === myRole);
 
             const modalTitle = document.getElementById("modal-title");
             const modalSubtitle = document.getElementById("modal-subtitle");
@@ -589,8 +566,9 @@
             if (winStatus) {
                 modalTitle.innerText = "ZAFER SİZİN! 🏆";
                 modalTitle.className = "text-2xl font-black text-emerald-400";
-                modalSubtitle.innerText = "Rakibinden daha hızlı davranarak gizli sayıyı çözdün!";
-                playerStats.score += 300; saveStats(); 
+                // 💰 PvP Galibiyet Ödülü Tam Olarak +499 Puan Yapıldı!
+                modalSubtitle.innerText = "Mükemmel hamle! Düelloyu kazandınız: +499 Puan!";
+                playerStats.score += 499; saveStats(); 
             } else {
                 modalTitle.innerText = "KAYBETTİNİZ ⚔️";
                 modalTitle.className = "text-2xl font-black text-red-500";
@@ -604,28 +582,23 @@
         function quitCurrentGame() {
             if(isPvP && pvpGameStateRef) {
                 let nextWinner = (myRole === 'creator' ? 'joiner' : 'creator');
-                pvpGameStateRef.update({ status: 'ended', winner: nextWinner });
-                pvpGameStateRef.off();
+                pvpGameStateRef.update({ status: 'ended', winner: nextWinner }); pvpGameStateRef.off();
             }
             showStartMenu();
         }
 
         // ==========================================
-        // ⚙ digging STANDART OYUN MOTORU KODLARI
+        // ⚙️ STANDART OYUN MOTORU KODLARI
         // ==========================================
         function initGame() {
-            updateMenuData();
-            buildUIElements();
-            gizliSayi = rastgeleSayiUret();
+            updateMenuData(); buildUIElements(); gizliSayi = rastgeleSayiUret();
             console.log("🔒 Gizli Sayı:", gizliSayi);
             currentGuess = []; movesCount = 0; totalSecondsSpent = 0; isGameActive = true;
             
             let config = getRankConfig(playerStats.level);
-            maxProMoves = config.maxMoves;
-            timeLeft = config.duration;
+            maxProMoves = config.maxMoves; timeLeft = config.duration;
 
             updateMoveText();
-            document.getElementById("tactic-info-text").innerHTML = `💡 Taktik: Sayılara <span class="text-amber-500 font-bold">basılı tutarak</span> Kırmızı / Yeşil yapabilirsin.`;
             document.getElementById("history-container").innerHTML = `
                 <div id="empty-state" class="h-full flex flex-col items-center justify-center text-xs italic" style="color: var(--text-muted);">
                     <i class="fa-solid fa-flag text-2xl mb-2"></i>Seviye ${playerStats.level} Başladı! Tahminini yap.
@@ -634,14 +607,9 @@
         }
 
         function buildUIElements() {
-            const wrapper = document.getElementById("cells-wrapper");
-            wrapper.innerHTML = "";
-            for (let i = 0; i < maxDigits; i++) {
-                wrapper.innerHTML += `<div id="cell-${i}" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all shadow-inner" style="background-color: var(--bg-card); border: 2px solid var(--border-color);"></div>`;
-            }
-
-            const kbContainer = document.getElementById("keyboard-container");
-            kbContainer.innerHTML = "";
+            const wrapper = document.getElementById("cells-wrapper"); wrapper.innerHTML = "";
+            for (let i = 0; i < maxDigits; i++) { wrapper.innerHTML += `<div id="cell-${i}" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all shadow-inner" style="background-color: var(--bg-card); border: 2px solid var(--border-color);"></div>`; }
+            const kbContainer = document.getElementById("keyboard-container"); kbContainer.innerHTML = "";
 
             if (currentDifficulty === 'basic') {
                 kbContainer.innerHTML = `
@@ -678,11 +646,7 @@
             if (currentDifficulty === 'pro') {
                 document.getElementById("timer-text").innerText = `${timeLeft}s`;
                 timerBox.classList.remove("hidden"); timerBox.classList.add("flex");
-                timerInterval = setInterval(() => { 
-                    if (!isGameActive) return; timeLeft--; totalSecondsSpent++; 
-                    document.getElementById("timer-text").innerText = `${timeLeft}s`; 
-                    if (timeLeft <= 0) endGame(false, "Zaman Aşımı!"); 
-                }, 1000);
+                timerInterval = setInterval(() => { if (!isGameActive) return; timeLeft--; totalSecondsSpent++; document.getElementById("timer-text").innerText = `${timeLeft}s`; if (timeLeft <= 0) endGame(false, "Zaman Aşımı!"); }, 1000);
             } else {
                 timerBox.classList.remove("flex"); timerBox.classList.add("hidden");
                 timerInterval = setInterval(() => { if (isGameActive) totalSecondsSpent++; }, 1000);
@@ -714,17 +678,13 @@
 
         function submitGuess() {
             if (!isGameActive || currentGuess.length !== maxDigits) { triggerCellShake(); return; }
-
             if (isPvP) {
                 pvpGameStateRef.once('value', (snapshot) => {
-                    let data = snapshot.val();
-                    if (data.status !== 'playing') return;
+                    let data = snapshot.val(); if (data.status !== 'playing') return;
                     if (data.turn !== myRole) { alert("Şu an rakibinizin hamle yapması bekleniyor!"); return; }
                     executeGuessSubmission();
                 });
-            } else {
-                executeGuessSubmission();
-            }
+            } else { executeGuessSubmission(); }
         }
 
         function executeGuessSubmission() {
@@ -737,27 +697,14 @@
 
             if (isPvP) {
                 let nextTurn = (myRole === 'creator') ? 'joiner' : 'creator';
-                if (artiSkor === maxDigits) {
-                    pvpGameStateRef.update({ 
-                        lastGuess: tahminStr, 
-                        lastGuessResult: sonucMetni,
-                        status: 'ended', 
-                        winner: myRole 
-                    });
-                } else {
-                    pvpGameStateRef.update({ 
-                        turn: nextTurn, 
-                        lastGuess: tahminStr, 
-                        lastGuessResult: sonucMetni 
-                    });
-                }
+                if (artiSkor === maxDigits) { pvpGameStateRef.update({ lastGuess: tahminStr, lastGuessResult: sonucMetni, status: 'ended', winner: myRole }); } 
+                else { pvpGameStateRef.update({ turn: nextTurn, lastGuess: tahminStr, lastGuessResult: sonucMetni }); }
             } else {
                 renderHistoryRow(tahminStr, artiSkor, eksiSkor);
                 if (artiSkor === maxDigits) { endGame(true); currentGuess = []; updateInputCells(); return; } 
                 if (currentDifficulty === 'pro' && movesCount >= maxProMoves) { endGame(false, "Hamle Sınırı!"); currentGuess = []; updateInputCells(); return; }
                 if (currentDifficulty === 'pro') { let config = getRankConfig(playerStats.level); timeLeft = config.duration; document.getElementById("timer-text").innerText = `${timeLeft}s`; }
             }
-
             currentGuess = []; updateInputCells();
         }
 
@@ -812,7 +759,14 @@
             if (lastResultWin) {
                 let oldConfig = getRankConfig(playerStats.level);
                 if (playerStats.level < MAX_LEVELS) playerStats.level++; else playerStats.level = 1;
+                
+                // 🎁 SEVİYE ATLAYINCA +500 PUAN VE JOKER STOKLARI EKLENDİ
+                playerStats.score += 500;
+                playerStats.jokers.ele += 1;
+                playerStats.jokers.fisilda += 1;
+                playerStats.jokers.basamak += 1;
                 saveStats();
+
                 let newConfig = getRankConfig(playerStats.level);
                 if (oldConfig.name !== newConfig.name) { triggerRankCelebration(newConfig); return; }
             }
@@ -849,27 +803,50 @@
             if (navigator.vibrate) navigator.vibrate(40);
         }
 
+        // 🛒 YENİLENEN ENVENTER TABANLI JOKER SİSTEMİ
         function useJoker(type) {
-            if (!isGameActive || isPvP) return;
+            if (!isGameActive) return;
+            
             if (type === 'ele') {
-                if (playerStats.score < 100) { alert("Yetersiz Puan!"); return; }
+                // Önce bedava stok kontrolü, stok yoksa puan kontrolü
+                if (playerStats.jokers.ele > 0) {
+                    playerStats.jokers.ele -= 1;
+                } else {
+                    if (playerStats.score < 100) { alert("Yetersiz Joker Stoğu ve Puan! (100 Puan gerekli)"); return; }
+                    playerStats.score -= 100;
+                }
+                
                 let olmayanlar = allowedPool.filter(n => !gizliSayi.includes(n)).filter(n => document.getElementById(`key-${n}`).clickState !== 1);
                 if (olmayanlar.length === 0) { alert("Elenecek rakam kalmadı!"); return; }
-                playerStats.score -= 100; saveStats(); updateMenuData();
+                saveStats(); updateMenuData();
                 let secilen = olmayanlar[Math.floor(Math.random() * olmayanlar.length)];
                 const key = document.getElementById(`key-${secilen}`); if (key) { key.clickState = 1; key.classList.remove("key-neutral", "key-green"); key.classList.add("key-red"); }
+            
             } else if (type === 'fisilda') {
-                if (playerStats.score < 200) { alert("Yetersiz Puan!"); return; }
+                if (playerStats.jokers.fisilda > 0) {
+                    playerStats.jokers.fisilda -= 1;
+                } else {
+                    if (playerStats.score < 200) { alert("Yetersiz Joker Stoğu ve Puan! (200 Puan gerekli)"); return; }
+                    playerStats.score -= 200;
+                }
+                
                 let buluncaklar = gizliSayi.split("").filter(n => document.getElementById(`key-${n}`).clickState !== 2);
                 if (buluncaklar.length === 0) { alert("Tüm rakamları buldun!"); return; }
-                playerStats.score -= 200; saveStats(); updateMenuData();
+                saveStats(); updateMenuData();
                 let secilen = buluncaklar[Math.floor(Math.random() * buluncaklar.length)];
                 const key = document.getElementById(`key-${secilen}`); if (key) { key.clickState = 2; key.classList.remove("key-neutral", "key-red"); key.classList.add("key-green"); }
                 alert(`Fısıltı: Gizli sayıda "${secilen}" rakamı var!`);
+            
             } else if (type === 'basamak') {
-                if (playerStats.score < 500) { alert("Yetersiz Puan!"); return; }
+                if (playerStats.jokers.basamak > 0) {
+                    playerStats.jokers.basamak -= 1;
+                } else {
+                    if (playerStats.score < 500) { alert("Yetersiz Joker Stoğu ve Puan! (500 Puan gerekli)"); return; }
+                    playerStats.score -= 500;
+                }
+                
                 let acilmamis = []; for (let i = 0; i < maxDigits; i++) { if (document.getElementById(`cell-${i}`).innerText === "") acilmamis.push(i); }
-                playerStats.score -= 500; saveStats(); updateMenuData();
+                saveStats(); updateMenuData();
                 let targetIdx = acilmamis.length > 0 ? acilmamis[Math.floor(Math.random() * acilmamis.length)] : Math.floor(Math.random() * maxDigits);
                 let tamRakam = gizliSayi[targetIdx]; let basamakAdi = ["1. Basamak", "2. Basamak", "3. Basamak", "4. Basamak"][targetIdx];
                 const key = document.getElementById(`key-${tamRakam}`); if (key) { key.clickState = 2; key.classList.remove("key-neutral", "key-red"); key.classList.add("key-green"); }
