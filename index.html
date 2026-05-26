@@ -7,18 +7,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Mobil cihazlarda istenmeyen tarayıcı hareketlerini sıfırlama */
-        html, body {
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            -webkit-text-size-adjust: 100%;
-        }
-        body {
-            -webkit-tap-highlight-color: transparent;
-            touch-action: none;
-        }
+        html, body { overflow: hidden; position: fixed; width: 100%; height: 100%; -webkit-text-size-adjust: 100%; }
+        body { -webkit-tap-highlight-color: transparent; touch-action: none; }
+        .key-neutral { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; text-decoration: none !important; font-weight: bold !important; }
+        .key-red { background-color: #7f1d1d !important; color: #fca5a5 !important; border-color: #b91c1c !important; text-decoration: line-through !important; font-weight: bold !important; }
+        .key-green { background-color: #047857 !important; color: #ffffff !important; border-color: #10b981 !important; text-decoration: none !important; font-weight: 900 !important; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center h-full w-full p-0 select-none m-0">
@@ -38,7 +31,7 @@
                 </div>
 
                 <div class="space-y-3">
-                    <button onclick="selectDifficulty('basic')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                    <button onclick="selectDifficulty('basic')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer">
                         <div>
                             <span class="block text-emerald-400 font-bold text-base">Basic</span>
                             <span class="text-[11px] text-slate-400">3 Basamak (1-6 Rakamları), Süresiz</span>
@@ -46,7 +39,7 @@
                         <i class="fa-solid fa-seedling text-emerald-400 text-lg"></i>
                     </button>
 
-                    <button onclick="selectDifficulty('medium')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                    <button onclick="selectDifficulty('medium')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer">
                         <div>
                             <span class="block text-amber-400 font-bold text-base">Medium</span>
                             <span class="text-[11px] text-slate-400">4 Basamak (1-9 Rakamları), Süresiz</span>
@@ -54,7 +47,7 @@
                         <i class="fa-solid fa-chess-knight text-amber-400 text-lg"></i>
                     </button>
 
-                    <button onclick="selectDifficulty('pro')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                    <button onclick="selectDifficulty('pro')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer">
                         <div>
                             <span class="block text-rose-500 font-bold text-base">Pro</span>
                             <span class="text-[11px] text-slate-400">4 Basamak, 60s Süreli, Max 10 Hamle!</span>
@@ -66,7 +59,7 @@
         </div>
 
         <header class="h-12 flex justify-between items-center shrink-0">
-            <button onclick="showStartMenu()" class="bg-slate-800 active:scale-95 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+            <button onclick="showStartMenu()" class="bg-slate-800 active:scale-95 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer">
                 <i class="fa-solid fa-arrow-left text-[10px]"></i> Menü
             </button>
             
@@ -85,15 +78,27 @@
             </div>
         </header>
 
+        <div class="bg-slate-800/40 border border-slate-800/80 p-1.5 rounded-2xl flex justify-between items-center shrink-0 gap-1.5 text-[11px]">
+            <button onclick="useJoker('ele')" class="flex-1 bg-slate-800/80 hover:bg-slate-800 py-1.5 px-1 rounded-xl text-center border border-slate-700/50 active:scale-95 transition-all cursor-pointer">
+                <span class="block font-bold text-slate-200">🔍 1 Rakam Ele</span>
+                <span class="font-mono text-red-400 font-bold">100 Puan</span>
+            </button>
+            <button onclick="useJoker('fisilda')" class="flex-1 bg-slate-800/80 hover:bg-slate-800 py-1.5 px-1 rounded-xl text-center border border-slate-700/50 active:scale-95 transition-all cursor-pointer">
+                <span class="block font-bold text-slate-200">💬 Rakam Bul</span>
+                <span class="font-mono text-amber-400 font-bold">200 Puan</span>
+            </button>
+            <button onclick="useJoker('basamak')" class="flex-1 bg-slate-800/80 hover:bg-slate-800 py-1.5 px-1 rounded-xl text-center border border-slate-700/50 active:scale-95 transition-all cursor-pointer">
+                <span class="block font-bold text-slate-200">🎯 Basamak Aç</span>
+                <span class="font-mono text-emerald-400 font-bold">500 Puan</span>
+            </button>
+        </div>
+
         <main id="history-container" class="flex-1 my-2 overflow-y-auto space-y-2.5 pr-0.5 min-h-0">
             </main>
 
         <footer class="shrink-0 space-y-3 pb-2 bg-slate-900 pt-2 border-t border-slate-800/40">
-            
             <div id="cells-wrapper" class="flex justify-center gap-3"></div>
-
-            <p class="text-[10px] text-center text-slate-500 font-medium">💡 Taktik: Rakamlara <span class="text-amber-500 font-bold">basılı tutarak</span> renklerini değiştirebilirsin.</p>
-
+            <p class="text-[10px] text-center text-slate-500 font-medium">💡 Taktik: Sayılara <span class="text-amber-500 font-bold">basılı tutarak</span> Kırmızı / Yeşil yapabilirsin.</p>
             <div id="keyboard-container" class="space-y-2"></div>
         </footer>
 
@@ -104,7 +109,7 @@
                 </div>
                 
                 <div>
-                    <h2 id="modal-title" class="text-2xl font-black text-emerald-400">Tebrikler!</h2>
+                    <h2 id="modal-title" class="text-2xl font-black text-emerald-400">Başarılı!</h2>
                     <p id="modal-subtitle" class="text-xs text-slate-400 mt-1">-</p>
                 </div>
 
@@ -115,7 +120,7 @@
                     </div>
                     <div class="bg-slate-800/60 p-2.5 rounded-2xl border border-slate-800">
                         <span class="block text-lg font-black text-orange-400" id="modal-moves">0</span>
-                        <span class="text-[9px] text-slate-500 uppercase font-bold" id="modal-moves-label">Hamle</span>
+                        <span class="text-[9px] text-slate-500 uppercase font-bold">Hamle</span>
                     </div>
                 </div>
 
@@ -244,7 +249,7 @@
             if (currentDifficulty === 'basic') {
                 kbContainer.innerHTML = `
                     <div class="grid grid-cols-6 gap-1.5">
-                        ${[1,2,3,4,5,6].map(n => `<button id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none">${n}</button>`).join('')}
+                        ${[1,2,3,4,5,6].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none key-neutral">${n}</button>`).join('')}
                     </div>
                     <div class="grid grid-cols-2 gap-3 pt-0.5">
                         <button id="btn-del" class="h-11 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
@@ -254,10 +259,10 @@
             } else {
                 kbContainer.innerHTML = `
                     <div class="grid grid-cols-5 gap-1.5">
-                        ${[1,2,3,4,5].map(n => `<button id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none">${n}</button>`).join('')}
+                        ${[1,2,3,4,5].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none key-neutral">${n}</button>`).join('')}
                     </div>
                     <div class="grid grid-cols-6 gap-1.5">
-                        ${[6,7,8,9].map(n => `<button id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none">${n}</button>`).join('')}
+                        ${[6,7,8,9].map(n => `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none key-neutral">${n}</button>`).join('')}
                         <button id="btn-del" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
                         <button id="btn-sub" class="h-12 bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg shadow-amber-500/10"><i class="fa-solid fa-paper-plane text-base"></i></button>
                     </div>
@@ -397,7 +402,7 @@
         function renderHistoryRow(tahmin, arti, eksi) {
             const container = document.getElementById("history-container");
             const row = document.createElement("div");
-            row.className = "flex items-center justify-between bg-slate-800/40 border border-slate-800/80 p-2 rounded-2xl shadow-md shrink-0";
+            row.className = "flex items-center justify-between bg-slate-800/40 border border-slate-800/80 p-2 rounded-2xl shadow-md shrink-0 animate-fade-in";
 
             let cellsHtml = `<div class="flex gap-1">`;
             for(let i=0; i<maxDigits; i++) {
@@ -439,7 +444,6 @@
                 let tahminPuani = 160 - ((movesCount - 1) * 10);
                 if (tahminPuani < 0) tahminPuani = 0;
 
-                let tabanZamanHavuzu = 600; 
                 let harcananOnSaniye = Math.floor(totalSecondsSpent / 10);
                 let zamanPuani = Math.max(0, 60 - harcananOnSaniye);
 
@@ -492,41 +496,34 @@
             }
         }
 
-        // 📱 MOBİL OYUN KONTROLLERİ (UZUN BASMA - TOUCH GÜVENLİ)
         function bindTouchControls() {
-            // Silme ve Gönderme tetikleyicileri
             document.getElementById("btn-del").addEventListener("touchstart", (e) => { e.preventDefault(); deleteDigit(); });
             document.getElementById("btn-sub").addEventListener("touchstart", (e) => { e.preventDefault(); submitGuess(); });
 
-            // Rakamlar için Touch / Basılı Tutma Takibi
             allowedPool.forEach(n => {
                 const key = document.getElementById(`key-${n}`);
                 if (!key) return;
-                key.clickState = 0;
+                key.clickState = 0; 
 
                 let touchStartTime = 0;
                 let touchTimer = null;
                 let isLongPress = false;
 
-                // Tıklama Başlangıcı
                 key.addEventListener("touchstart", (e) => {
                     e.preventDefault();
                     isLongPress = false;
                     touchStartTime = Date.now();
                     
-                    // 500ms sonra Uzun Basmayı tetikle
                     touchTimer = setTimeout(() => {
                         isLongPress = true;
                         triggerLongPress(key, n);
-                    }, 400);
+                    }, 400); 
                 });
 
-                // Tıklama Bitişi
                 key.addEventListener("touchend", (e) => {
                     e.preventDefault();
                     clearTimeout(touchTimer);
                     
-                    // Eğer basılı tutulmadıysa normal dokunmadır (Yazı yazar)
                     if (!isLongPress && (Date.now() - touchStartTime < 400)) {
                         inputDigit(n);
                     }
@@ -534,23 +531,92 @@
             });
         }
 
-        // Uzun basma olunca rengi değiştir (Strateji Modu)
         function triggerLongPress(key, digit) {
             if (!isGameActive) return;
             key.clickState = (key.clickState + 1) % 3;
             
-            key.className = "h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none";
-            
-            if (key.clickState === 1) {
-                key.classList.add("bg-red-950/90", "text-red-300", "line-through", "border-red-700");
-            } else if (key.clickState === 2) {
-                key.classList.add("bg-emerald-700", "border-emerald-500", "text-white font-black");
-            } else {
-                key.classList.add("bg-slate-800", "border-slate-700");
-            }
+            key.classList.remove("key-neutral", "key-red", "key-green");
+            if (key.clickState === 1) key.classList.add("key-red");
+            else if (key.clickState === 2) key.classList.add("key-green");
+            else key.className = "h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all text-slate-100 select-none key-neutral";
 
-            // Telefonda küçük bir titreşim efekti simülasyonu (Destekleyen cihazlarda)
             if (navigator.vibrate) navigator.vibrate(40);
+        }
+
+        // 🛒 YENİ GÜNCELLENEN 3 RESMİ JOKER SİSTEMİ
+        function useJoker(type) {
+            if (!isGameActive) return;
+
+            if (type === 'ele') {
+                if (playerStats.score < 100) { alert("Yetersiz Puan! (100 Puan gerekli)"); return; }
+                
+                let olmayanlar = allowedPool.filter(n => !gizliSayi.includes(n));
+                // Zaten elenmiş olanları filtrele
+                olmayanlar = olmayanlar.filter(n => document.getElementById(`key-${n}`).clickState !== 1);
+                
+                if (olmayanlar.length === 0) { alert("Elenecek rakam kalmadı!"); return; }
+                
+                playerStats.score -= 100;
+                saveStats(); updateMenuData();
+                
+                let secilen = olmayanlar[Math.floor(Math.random() * olmayanlar.length)];
+                const key = document.getElementById(`key-${secilen}`);
+                if (key) {
+                    key.clickState = 1;
+                    key.classList.remove("key-neutral", "key-green");
+                    key.classList.add("key-red");
+                }
+                
+            } else if (type === 'fisilda') {
+                if (playerStats.score < 200) { alert("Yetersiz Puan! (200 Puan gerekli)"); return; }
+                
+                // Gizli sayıdaki rakamlardan henüz yeşil yapılmamış olanları bul
+                let gizliDizi = gizliSayi.split("");
+                let buluncaklar = gizliDizi.filter(n => document.getElementById(`key-${n}`).clickState !== 2);
+                
+                if (buluncaklar.length === 0) { alert("Tüm rakamları zaten buldun!"); return; }
+                
+                playerStats.score -= 200;
+                saveStats(); updateMenuData();
+
+                let secilen = buluncaklar[Math.floor(Math.random() * buluncaklar.length)];
+                const key = document.getElementById(`key-${secilen}`);
+                if (key) {
+                    key.clickState = 2;
+                    key.classList.remove("key-neutral", "key-red");
+                    key.classList.add("key-green");
+                }
+                alert(`Fısıltı: Gizli sayıda "${secilen}" rakamı kesinlikle var!`);
+
+            } else if (type === 'basamak') {
+                if (playerStats.score < 500) { alert("Yetersiz Puan! (500 Puan gerekli)"); return; }
+                
+                // Oyuncunun henüz ekran hücrelerinde görmediği rastgele bir basamak seç
+                let acilmamisBasamaklar = [];
+                for (let i = 0; i < maxDigits; i++) {
+                    if (document.getElementById(`cell-${i}`).innerText === "") {
+                        acilmamisBasamaklar.push(i);
+                    }
+                }
+                
+                playerStats.score -= 500;
+                saveStats(); updateMenuData();
+
+                // Eğer oyuncu o an hücreleri doldurduysa rastgele bir basamağı seçelim
+                let targetIdx = acilmamisBasamaklar.length > 0 ? acilmamisBasamaklar[Math.floor(Math.random() * acilmamisBasamaklar.length)] : Math.floor(Math.random() * maxDigits);
+                let tamRakam = gizliSayi[targetIdx];
+                let basamakAdi = ["1. Basamak", "2. Basamak", "3. Basamak", "4. Basamak"][targetIdx];
+
+                // Klavyede yeşil yak
+                const key = document.getElementById(`key-${tamRakam}`);
+                if (key) {
+                    key.clickState = 2;
+                    key.classList.remove("key-neutral", "key-red");
+                    key.classList.add("key-green");
+                }
+                
+                alert(`TAM İSABET! 👉 ${basamakAdi} rakamı tam olarak: "${tamRakam}"`);
+            }
         }
 
         window.onload = showStartMenu;
