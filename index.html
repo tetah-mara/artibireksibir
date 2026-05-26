@@ -621,6 +621,14 @@ function initFirebase() {
         firebaseRefs.db   = firebase.database();
         firebaseRefs.auth = firebase.auth();
 
+        // Redirect sonrası geri dönüşü yakala
+        firebaseRefs.auth.getRedirectResult().catch((err) => {
+            if (err && err.code !== "auth/no-current-user") {
+                console.error("[Auth] Redirect sonucu hatası:", err);
+                UI.showError("Giriş tamamlanamadı: " + err.message);
+            }
+        });
+
         firebaseRefs.auth.onAuthStateChanged(async (user) => {
             hideLoadingOverlay();
 
@@ -636,6 +644,13 @@ function initFirebase() {
                         playerStats = cloudData;
                         playerStats.uid         = user.uid;
                         playerStats.googlePhoto = user.photoURL || "";
+                        // jokers nesnesi eksik/bozuk gelirse düzelt
+                        if (!playerStats.jokers || typeof playerStats.jokers !== "object") {
+                            playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
+                        }
+                        playerStats.jokers.ele     = playerStats.jokers.ele     ?? 1;
+                        playerStats.jokers.fisilda = playerStats.jokers.fisilda ?? 1;
+                        playerStats.jokers.basamak = playerStats.jokers.basamak ?? 1;
                         UI.modal.hide("auth-modal");
                         playerStats.hasSeenOnboarding
                             ? UI.showStartMenu()
@@ -673,7 +688,8 @@ function hideLoadingOverlay() {
 async function handleGoogleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
     try {
-        await firebaseRefs.auth.signInWithPopup(provider);
+        // GitHub Pages gibi static host'larda popup yerine redirect kullan
+        await firebaseRefs.auth.signInWithRedirect(provider);
     } catch (err) {
         console.error("[Auth] Giriş hatası:", err);
         UI.showError("Google giriş işlemi başlatılamadı. Lütfen tekrar deneyin.");
@@ -969,6 +985,15 @@ const GameLogic = {
             gameState.maxDigits   = 4;
             gameState.allowedPool = ["1","2","3","4","5","6","7","8","9"];
         }
+
+        // Menüyü kapat, UI'ı tek oyuncuya hazırla
+        UI.modal.hide("start-menu-modal");
+        document.getElementById("normal-score-badge").classList.remove("u-hidden");
+        document.getElementById("pvp-filter-bar").classList.add("u-hidden");
+        document.getElementById("pvp-turn-badge").classList.add("u-hidden");
+        document.getElementById("tactic-info-text").textContent =
+            "💡 Taktik: Sayılara basılı tutarak Kırmızı / Yeşil yapabilirsin.";
+
         this.initRound();
     },
 
@@ -999,6 +1024,14 @@ const GameLogic = {
     },
 
     initRound() {
+        // jokers nesnesi cloud'dan bozuk gelebilir — güvenli hale getir
+        if (!playerStats.jokers || typeof playerStats.jokers !== "object") {
+            playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
+        }
+        playerStats.jokers.ele      = playerStats.jokers.ele      ?? 1;
+        playerStats.jokers.fisilda  = playerStats.jokers.fisilda  ?? 1;
+        playerStats.jokers.basamak  = playerStats.jokers.basamak  ?? 1;
+
         UI.updateMenuData();
         UI.buildGameElements();
 
@@ -1054,6 +1087,7 @@ const GameLogic = {
         }
 
         if (gameState.isPvP) {
+            const self = GameLogic;
             firebaseRefs.roomRef.once("value", (snapshot) => {
                 const data = snapshot.val();
                 if (!data || data.status !== "playing") return;
@@ -1061,7 +1095,7 @@ const GameLogic = {
                     UI.showError("Şu an rakibinizin hamle yapması bekleniyor!");
                     return;
                 }
-                this._executeSubmit();
+                self._executeSubmit();
             }).catch(() => {
                 UI.showError("Hamle gönderilemedi. İnternet bağlantınızı kontrol edin.");
             });
@@ -1217,7 +1251,7 @@ const GameLogic = {
                 gameState.timeLeft--;
                 gameState.totalSecondsSpent++;
                 document.getElementById("timer-text").textContent = `${gameState.timeLeft}s`;
-                if (gameState.timeLeft <= 0) this.endSinglePlayer(false, "Zaman Aşımı!");
+                if (gameState.timeLeft <= 0) GameLogic.endSinglePlayer(false, "Zaman Aşımı!");
             }, 1000);
 
         } else {
@@ -1326,8 +1360,10 @@ const UI = {
 
     showStartMenu() {
         this.modal.hide("game-over-modal");
+        this.modal.hide("rank-celebration-modal");
         this.modal.show("start-menu-modal");
         this.modal.hide("pvp-filter-bar");
+        this.modal.hide("pvp-setup-modal");
 
         timers.clear();
         firebaseRefs.detachRoom();
@@ -1340,6 +1376,11 @@ const UI = {
         this.el("pvp-turn-badge").classList.add("u-hidden");
         this.el("normal-score-badge").classList.remove("u-hidden");
         this.el("history-container").innerHTML = "";
+        // Klavye ve hücreleri temizle
+        const kbContainer = this.el("keyboard-container");
+        if (kbContainer) kbContainer.innerHTML = "";
+        const cellsWrapper = this.el("cells-wrapper");
+        if (cellsWrapper) cellsWrapper.innerHTML = "";
         this.updateMenuData();
     },
 
