@@ -17,7 +17,7 @@
         .theme-light { --bg-main: #f1f5f9; --bg-card: #ffffff; --bg-kb: #e2e8f0; --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; }
         .key-neutral { background-color: var(--bg-card) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; font-weight: bold !important; }
         .key-red { background-color: #7f1d1d !important; color: #fca5a5 !important; border-color: #b91c1c !important; text-decoration: line-through !important; font-weight: bold !important; }
-        .key-green { background-color: #047857 !important; color: #ffffff !important; border-color: #10b981 !important; text-decoration: none !important; font-weight: 900 !important; }
+        .key-green { background-color: #047857 !important; color: #ffffff !important; border-color: #10b981 !important; font-weight: 900 !important; }
     </style>
 </head>
 <body class="flex items-center justify-center h-full w-full p-0 select-none m-0 transition-colors duration-300">
@@ -65,7 +65,7 @@
                     <div class="pt-2">
                         <span class="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider px-1">Çevrimiçi Kapışma</span>
                         <button onclick="openPvPMenu()" class="w-full mt-1 text-left bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 p-3.5 rounded-xl flex justify-between items-center transition-all cursor-pointer text-white shadow-lg shadow-indigo-950">
-                            <div><span class="block font-black text-sm text-white">Online Düello (PvP)</span><span class="text-[9px] text-indigo-200">Gerçek zamanlı rakip meydan okuması</span></div>
+                            <div><span class="block font-black text-sm text-white">Online Düello (PvP)</span><span class="text-[9px] text-indigo-200">Canlı rakiplerle zamana karşı düello</span></div>
                             <i class="fa-solid fa-hand-fist text-white text-base animate-bounce"></i>
                         </button>
                     </div>
@@ -80,9 +80,16 @@
                     <button onclick="closePvPMenu()" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
-                <div id="pvp-initial-actions" class="space-y-3">
-                    <button onclick="createPvPRoom()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl transition-all cursor-pointer">Oda Kur (Yeni Maç Başlat)</button>
-                    <div class="relative flex py-2 items-center">
+                <div id="pvp-initial-actions" class="space-y-4">
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-left space-y-1.5">
+                        <span class="text-[10px] text-slate-400 font-mono font-bold uppercase block">Zaman Denetimi</span>
+                        <div class="flex gap-2">
+                            <button id="mode-timeless-btn" onclick="setPvPTimeMode('timeless')" class="flex-1 bg-violet-600 text-white font-bold py-1.5 rounded-lg text-xs transition-all">Süresiz</button>
+                            <button id="mode-timed-btn" onclick="setPvPTimeMode('timed')" class="flex-1 bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-xs transition-all">Süreli (75s)</button>
+                        </div>
+                    </div>
+                    <button onclick="createPvPRoom()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-black py-3 rounded-xl transition-all cursor-pointer shadow-md">Oda Kur (Yeni Maç Başlat)</button>
+                    <div class="relative flex py-1 items-center">
                         <div class="flex-grow border-t border-slate-800"></div>
                         <span class="flex-shrink mx-4 text-slate-500 text-xs font-mono">VEYA</span>
                         <div class="flex-grow border-t border-slate-800"></div>
@@ -103,7 +110,7 @@
                     <div class="text-sm font-bold text-white">Rakibinin Tahmin Etmesi İçin <span class="text-amber-400">4 Haneli Benzersiz</span> Gizli Sayını Belirle:</div>
                     <input type="number" id="pvp-my-secret-input" placeholder="Örn: 4736" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-xl font-black text-amber-400 tracking-widest focus:outline-none" pattern="\d*">
                     <button onclick="submitMySecretNumber()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition-all cursor-pointer">Gizli Sayıyı Onayla & Başla</button>
-                    <p class="text-[10px] text-slate-500">Rakamlar tekrarsız olmalı ve 0 içermebelidir (1-9 arası).</p>
+                    <p class="text-[10px] text-slate-500">Rakamlar tekrarsız olmalı ve 0 içermemelidir (1-9 arası).</p>
                 </div>
             </div>
         </div>
@@ -151,6 +158,12 @@
                 <span class="block font-bold">🎯 Aç <span id="stok-basamak" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
                 <span class="font-mono text-emerald-500 font-bold">500 P</span>
             </button>
+        </div>
+
+        <div id="pvp-filter-bar" class="hidden grid grid-cols-3 gap-1 p-1 rounded-xl text-[10px] font-bold font-mono shrink-0 shadow-inner" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+            <button id="filter-all-btn" onclick="changeHistoryFilter('all')" class="py-1 rounded-lg text-center bg-violet-600 text-white transition-all cursor-pointer">HEPSİ</button>
+            <button id="filter-me-btn" onclick="changeHistoryFilter('me')" class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">SİZ</button>
+            <button id="filter-opp-btn" onclick="changeHistoryFilter('opp')" class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">RAKİP</button>
         </div>
 
         <main id="history-container" class="flex-1 my-2 overflow-y-auto space-y-2.5 pr-0.5 min-h-0">
@@ -227,7 +240,7 @@
                             <span class="block text-[9px] text-slate-500 font-bold">SEVİYE</span>
                             <span id="card-level-val" class="text-base font-black text-white">1</span>
                         </div>
-                        <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80">
+                        <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
                             <span class="block text-[9px] text-slate-500 font-bold">CÜZDAN</span>
                             <span id="card-score-val" class="text-base font-black text-emerald-400">0</span>
                         </div>
@@ -246,7 +259,7 @@
     </div>
 
     <script>
-        // 🔮 FIREBASE ENTEGRASYON BİLGİLERİ
+        // 🔮 FIREBASE CONFIG (PROJE: pvp-fafdd)
         const firebaseConfig = {
             apiKey: "AIzaSyDYRY3ZlQEjZUsZgjQ7487xmsFQWY_HI",
             authDomain: "pvp-fafdd.firebaseapp.com",
@@ -260,13 +273,12 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Stoklu Envanter Hafızası Tanımlandı
         let playerStats = { 
             level: 1, 
             score: 0, 
             theme: 'dark', 
             uid: 'user_' + Math.random().toString(36).substr(2, 9),
-            jokers: { ele: 1, fisilda: 1, basamak: 1 } // Başlangıçta hediye 1'er adet
+            jokers: { ele: 1, fisilda: 1, basamak: 1 }
         };
 
         if (localStorage.getItem("plusMinus_playerStats")) {
@@ -276,7 +288,6 @@
             playerStats.theme = loaded.theme || 'dark';
             if(loaded.uid) playerStats.uid = loaded.uid;
             if(loaded.jokers) playerStats.jokers = loaded.jokers;
-            else playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
         }
 
         const MAX_LEVELS = 3024; 
@@ -298,6 +309,9 @@
         let roomCode = null;
         let myRole = null; 
         let pvpGameStateRef = null;
+        let currentFilter = 'all'; // 'all', 'me', 'opp'
+        let pvpTimeMode = 'timeless'; // 'timeless', 'timed'
+        let localGuessesHistory = []; // Cache temizlik ve filtreleme için lokal dizi
 
         function getRankConfig(level) {
             if (level >= 21) return { name: "Tetah Mara", isImg: true, file: "tetah_mara.jpg", quote: "In for a penny, in for a pound.", maxMoves: 11, duration: 60 };
@@ -317,7 +331,6 @@
             document.getElementById("top-score-text").innerText = playerStats.score;
             document.getElementById("badge-level").innerText = `LVL ${playerStats.level}`;
             
-            // Stok göstergelerini güncelle
             document.getElementById("stok-ele").innerText = `(${playerStats.jokers.ele})`;
             document.getElementById("stok-fisilda").innerText = `(${playerStats.jokers.fisilda})`;
             document.getElementById("stok-basamak").innerText = `(${playerStats.jokers.basamak})`;
@@ -347,12 +360,9 @@
             document.getElementById("card-rank-name").innerText = config.name;
             document.getElementById("card-level-val").innerText = playerStats.level;
             document.getElementById("card-score-val").innerText = playerStats.score;
-            
-            // Stok adetlerini RPG kartına bas
             document.getElementById("card-ele-val").innerText = `${playerStats.jokers.ele} Adet`;
             document.getElementById("card-fisilda-val").innerText = `${playerStats.jokers.fisilda} Adet`;
             document.getElementById("card-basamak-val").innerText = `${playerStats.jokers.basamak} Adet`;
-
             const cardEmoji = document.getElementById("card-avatar-emoji");
             const cardImg = document.getElementById("card-avatar-img");
             if(config.isImg) { cardEmoji.classList.add("hidden"); cardImg.classList.remove("hidden"); cardImg.src = config.file; } 
@@ -369,13 +379,19 @@
             else { container.className = container.className.replace("theme-light", "theme-dark"); themeIcon.className = "fa-solid fa-sun text-amber-400"; }
         }
 
+        // 🧼 %100 CACHE TEMIZLIĞI VE SIFIRLAMA
         function showStartMenu() {
             document.getElementById("game-over-modal").classList.add("hidden");
             document.getElementById("start-menu-modal").classList.remove("hidden");
+            document.getElementById("pvp-filter-bar").classList.add("hidden");
+            
             if (timerInterval) clearInterval(timerInterval);
-            isGameActive = false; isPvP = false;
+            if (pvpGameStateRef) { pvpGameStateRef.off(); pvpGameStateRef = null; }
+            
+            isGameActive = false; isPvP = false; currentGuess = []; localGuessesHistory = [];
             document.getElementById("pvp-turn-badge").classList.add("hidden");
             document.getElementById("normal-score-badge").classList.remove("hidden");
+            document.getElementById("history-container").innerHTML = "";
             updateMenuData();
         }
 
@@ -388,9 +404,23 @@
         }
 
         // ==========================================
-        // ⚔️ PvP MODÜLÜ MANTIKSAL KURGUSU
+        // ⚔️ PvP MODÜLÜ VE ZAMAN SEÇENEKLERİ
         // ==========================================
+        function setPvPTimeMode(mode) {
+            pvpTimeMode = mode;
+            const timelessBtn = document.getElementById("mode-timeless-btn");
+            const timedBtn = document.getElementById("mode-timed-btn");
+            if(mode === 'timed') {
+                timedBtn.className = "flex-1 bg-violet-600 text-white font-bold py-1.5 rounded-lg text-xs transition-all";
+                timelessBtn.className = "flex-1 bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-xs transition-all";
+            } else {
+                timelessBtn.className = "flex-1 bg-violet-600 text-white font-bold py-1.5 rounded-lg text-xs transition-all";
+                timedBtn.className = "flex-1 bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-xs transition-all";
+            }
+        }
+
         function openPvPMenu() {
+            setPvPTimeMode('timeless');
             document.getElementById("pvp-initial-actions").classList.remove("hidden");
             document.getElementById("pvp-waiting-screen").classList.add("hidden");
             document.getElementById("pvp-secret-select-screen").classList.add("hidden");
@@ -410,36 +440,16 @@
                 turn: 'creator',
                 creatorSecret: '',
                 joinerSecret: '',
-                lastGuess: '',
-                lastGuessResult: '',
+                timeMode: pvpTimeMode,
+                lastGuessUid: '',
+                lastGuessData: '',
                 winner: ''
             });
 
             document.getElementById("pvp-initial-actions").classList.add("hidden");
             document.getElementById("displayed-room-code").innerText = roomCode;
             document.getElementById("pvp-waiting-screen").classList.remove("hidden");
-
-            pvpGameStateRef.on('value', (snapshot) => {
-                let data = snapshot.val();
-                if (!data) return;
-                
-                if (data.status === 'waiting' && data.joinerId !== '' && document.getElementById("pvp-secret-select-screen").classList.contains("hidden") && data.creatorSecret === '') {
-                    document.getElementById("pvp-waiting-screen").classList.add("hidden");
-                    document.getElementById("pvp-secret-select-screen").classList.remove("hidden");
-                }
-                
-                if (data.status === 'playing') {
-                    if (!isGameActive || !isPvP) { closePvPMenu(); startPvPGamePlay(data); } 
-                    else {
-                        handleTurnUI(data.turn);
-                        if (data.lastGuess && data.lastGuess !== '') {
-                            const rowId = `guess-${data.lastGuess}`;
-                            if (!document.getElementById(rowId)) { renderHistoryRowPvP(data.lastGuess, data.lastGuessResult, data.turn !== myRole); }
-                        }
-                    }
-                }
-                if (data.status === 'ended' && isGameActive) { handlePvPEnd(data); }
-            });
+            bindPvPLiveListeners();
         }
 
         function joinPvPRoom() {
@@ -453,24 +463,49 @@
                 if (!data) { alert("Oda bulunamadı! Kodu kontrol edin."); return; }
                 if (data.status !== 'waiting' || data.joinerId !== '') { alert("Bu oda zaten dolu veya oyun başlamış."); return; }
 
+                pvpTimeMode = data.timeMode || 'timeless';
                 pvpGameStateRef.update({ joinerId: playerStats.uid });
                 document.getElementById("pvp-initial-actions").classList.add("hidden");
                 document.getElementById("pvp-secret-select-screen").classList.remove("hidden");
+                bindPvPLiveListeners();
+            });
+        }
 
-                pvpGameStateRef.on('value', (snapshot) => {
-                    let liveData = snapshot.val(); if (!liveData) return;
-                    if (liveData.status === 'playing') {
-                        if (!isGameActive || !isPvP) { closePvPMenu(); startPvPGamePlay(liveData); } 
-                        else {
-                            handleTurnUI(liveData.turn);
-                            if (liveData.lastGuess && liveData.lastGuess !== '') {
-                                const rowId = `guess-${liveData.lastGuess}`;
-                                if (!document.getElementById(rowId)) { renderHistoryRowPvP(liveData.lastGuess, liveData.lastGuessResult, liveData.turn !== myRole); }
+        // 🔄 GELİŞMİŞ REALTIME DINLEYICI (SIRA VE VERI SENSE)
+        function bindPvPLiveListeners() {
+            pvpGameStateRef.on('value', (snapshot) => {
+                let data = snapshot.val(); if (!data) return;
+                
+                if (data.status === 'waiting' && data.joinerId !== '' && myRole === 'creator' && data.creatorSecret === '') {
+                    document.getElementById("pvp-waiting-screen").classList.add("hidden");
+                    document.getElementById("pvp-secret-select-screen").classList.remove("hidden");
+                }
+                
+                if (data.status === 'playing') {
+                    if (!isGameActive || !isPvP) { closePvPMenu(); startPvPGamePlay(data); } 
+                    else {
+                        handleTurnUI(data.turn);
+                        // Yeni hamle bildirim paketi geldiyse çöz
+                        if (data.lastGuessData && data.lastGuessData !== '') {
+                            let parts = data.lastGuessData.split(':'); // tahmin:sonuc:uid
+                            if(parts.length === 3) {
+                                let gGuess = parts[0]; let gRes = parts[1]; let gUid = parts[2];
+                                let uniqueId = gUid + "_" + gGuess;
+                                
+                                // Lokal dizide yoksa ekle ve arayüze bas
+                                if (!localGuessesHistory.some(x => x.id === uniqueId)) {
+                                    let actionObj = { id: uniqueId, tahmin: gGuess, sonuc: gRes, isMe: (gUid === playerStats.uid) };
+                                    localGuessesHistory.push(actionObj);
+                                    renderAllFilteredHistory();
+                                    
+                                    // Süreli modda sıra bana geçtiyse zamanlayıcıyı sıfırla
+                                    if (data.turn === myRole && pvpTimeMode === 'timed') { setupTimer(); }
+                                }
                             }
                         }
                     }
-                    if (liveData.status === 'ended' && isGameActive) { handlePvPEnd(liveData); }
-                });
+                }
+                if (data.status === 'ended' && isGameActive) { handlePvPEnd(data); }
             });
         }
 
@@ -497,103 +532,101 @@
 
         function startPvPGamePlay(data) {
             isPvP = true; isGameActive = true; currentDifficulty = 'PvP Düello'; maxDigits = 4;
-            allowedPool = ["1","2","3","4","5","6","7","8","9"]; currentGuess = []; movesCount = 0; totalSecondsSpent = 0;
+            allowedPool = ["1","2","3","4","5","6","7","8","9"]; currentGuess = []; movesCount = 0; totalSecondsSpent = 0; localGuessesHistory = [];
             gizliSayi = (myRole === 'creator') ? data.joinerSecret : data.creatorSecret;
 
             document.getElementById("start-menu-modal").classList.add("hidden");
             document.getElementById("normal-score-badge").classList.add("hidden");
+            document.getElementById("pvp-filter-bar").classList.remove("hidden"); // Switcher Açıldı
+            changeHistoryFilter('all');
+
             document.getElementById("tactic-info-text").innerText = "⚔️ Online Düello Modu. Joker kullanımı serbesttir!";
-
             buildUIElements(); updateMoveText(); setupTimer();
-
-            document.getElementById("history-container").innerHTML = `
-                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-xs italic text-violet-400">
-                    <i class="fa-solid fa-swords text-2xl mb-2 animate-bounce"></i>Düello Başladı! İlk doğru tahmini yapan kazanır.
-                </div>`;
-            handleTurnUI(data.turn);
+            renderAllFilteredHistory();
         }
 
-        function handleTurnUI(activeTurn) {
-            const turnBadge = document.getElementById("pvp-turn-badge");
-            turnBadge.classList.remove("hidden");
-            if (activeTurn === myRole) {
-                turnBadge.innerText = "SIRA SİZDE";
-                turnBadge.className = "px-2 py-1 rounded-lg font-black bg-emerald-600 text-white animate-pulse";
-            } else {
-                turnBadge.innerText = "RAKİPTE";
-                turnBadge.className = "px-2 py-1 rounded-lg font-black bg-slate-700 text-slate-400";
+        // 📑 TAHMİN FİLTRELEME VE SWITCHER SİHRİ
+        function changeHistoryFilter(filterType) {
+            currentFilter = filterType;
+            const btnAll = document.getElementById("filter-all-btn");
+            const btnMe = document.getElementById("filter-me-btn");
+            const btnOpp = document.getElementById("filter-opp-btn");
+            
+            btnAll.className = "py-1 rounded-lg text-center transition-all cursor-pointer " + (filterType === 'all' ? 'bg-violet-600 text-white':'text-slate-400');
+            btnMe.className = "py-1 rounded-lg text-center transition-all cursor-pointer " + (filterType === 'me' ? 'bg-violet-600 text-white':'text-slate-400');
+            btnOpp.className = "py-1 rounded-lg text-center transition-all cursor-pointer " + (filterType === 'opp' ? 'bg-violet-600 text-white':'text-slate-400');
+            
+            renderAllFilteredHistory();
+        }
+
+        function renderAllFilteredHistory() {
+            const container = document.getElementById("history-container");
+            container.innerHTML = "";
+            
+            let filtered = localGuessesHistory;
+            if (currentFilter === 'me') filtered = localGuessesHistory.filter(x => x.isMe);
+            if (currentFilter === 'opp') filtered = localGuessesHistory.filter(x => !x.isMe);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-xs italic text-slate-500">Bu sekmede henüz tahmin yok.</div>`;
+                return;
+            }
+            
+            // Yeni tahminler her zaman en üstte listelenir
+            for (let i = filtered.length - 1; i >= 0; i--) {
+                let item = filtered[i];
+                const row = document.createElement("div");
+                row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors animate-fade-in";
+                if(item.isMe) { row.style.backgroundColor = "rgba(99, 102, 241, 0.08)"; row.style.borderColor = "rgba(99, 102, 241, 0.3)"; } 
+                else { row.style.backgroundColor = "var(--bg-card)"; row.style.borderColor = "var(--border-color)"; }
+
+                let cellsHtml = `<div class="flex items-center gap-2">`;
+                cellsHtml += `<span class="text-[8px] font-mono font-bold px-1 rounded ${item.isMe ? 'bg-indigo-500 text-white':'bg-slate-700 text-slate-300'}">${item.isMe ? 'SİZ':'RAKİP'}</span>`;
+                cellsHtml += `<div class="flex gap-1">`;
+                for(let j=0; j<4; j++) { cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs" style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${item.tahmin[j]}</div>`; }
+                cellsHtml += `</div></div>`;
+
+                let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
+                badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-violet-600/10 text-violet-400 border border-violet-500/20">${item.sonuc}</span>`;
+                badgeHtml += `</div>`;
+                
+                row.innerHTML = cellsHtml + badgeHtml; container.appendChild(row);
             }
         }
 
-        function renderHistoryRowPvP(tahmin, sonucMetni, isMyAction) {
-            const container = document.getElementById("history-container");
-            const row = document.createElement("div");
-            row.id = `guess-${tahmin}`;
-            row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors";
-            
-            if(isMyAction) { row.style.backgroundColor = "rgba(99, 102, 241, 0.1)"; row.style.borderColor = "rgba(99, 102, 241, 0.4)"; } 
-            else { row.style.backgroundColor = "var(--bg-card)"; row.style.borderColor = "var(--border-color)"; }
-
-            let cellsHtml = `<div class="flex items-center gap-2">`;
-            cellsHtml += `<span class="text-[9px] font-mono font-bold px-1 rounded uppercase ${isMyAction ? 'bg-indigo-500 text-white':'bg-slate-800 text-slate-400'}">${isMyAction ? 'SİZ':'RAKİP'}</span>`;
-            cellsHtml += `<div class="flex gap-1">`;
-            for(let i=0; i<4; i++) { cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-sm" style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i] || '?'}</div>`; }
-            cellsHtml += `</div></div>`;
-
-            let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
-            if (sonucMetni === "+0 -0" || sonucMetni === "0") { badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-500 border border-slate-500/20">0</span>`; } 
-            else { badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-violet-600/20 text-violet-400 border border-violet-500/30">${sonucMetni}</span>`; }
-            badgeHtml += `</div>`;
-            
-            row.innerHTML = cellsHtml + badgeHtml; container.insertBefore(row, container.firstChild);
-        }
-
         function handlePvPEnd(data) {
-            isGameActive = false; if (timerInterval) clearInterval(timerInterval); if(pvpGameStateRef) pvpGameStateRef.off(); 
+            isGameActive = false; if (timerInterval) clearInterval(timerInterval);
             let winStatus = (data.winner === myRole);
 
             const modalTitle = document.getElementById("modal-title");
             const modalSubtitle = document.getElementById("modal-subtitle");
             const actionBtn = document.getElementById("modal-action-btn");
-            const yuanDetayNode = document.getElementById("modal-puan-detay");
+            document.getElementById("modal-puan-detay").style.display = "none";
 
             document.getElementById("modal-diff-text").innerText = "PvP";
-            document.getElementById("modal-diff-spec").innerText = "Canlı Düello";
+            document.getElementById("modal-diff-spec").innerText = pvpTimeMode === 'timed' ? "Süreli Düello":"Süresiz Düello";
             document.getElementById("modal-moves").innerText = movesCount;
             document.getElementById("modal-total-time-spent").innerText = `${totalSecondsSpent}s`;
-            yuanDetayNode.style.display = "none";
 
             if (winStatus) {
-                modalTitle.innerText = "ZAFER SİZİN! 🏆";
-                modalTitle.className = "text-2xl font-black text-emerald-400";
-                // 💰 PvP Galibiyet Ödülü Tam Olarak +499 Puan Yapıldı!
-                modalSubtitle.innerText = "Mükemmel hamle! Düelloyu kazandınız: +499 Puan!";
+                modalTitle.innerText = "ZAFER SİZİN! 🏆"; modalTitle.className = "text-2xl font-black text-emerald-400";
+                modalSubtitle.innerText = "Tebrikler! Düelloyu kazanarak hanene +499 Puan yazdırdın!";
                 playerStats.score += 499; saveStats(); 
             } else {
-                modalTitle.innerText = "KAYBETTİNİZ ⚔️";
-                modalTitle.className = "text-2xl font-black text-red-500";
-                modalSubtitle.innerText = `Rakibin sayıyı senden önce bild! Rakibin Sayısı: ${gizliSayi}`;
+                modalTitle.innerText = "KAYBETTİNİZ ⚔️"; modalTitle.className = "text-2xl font-black text-red-500";
+                modalSubtitle.innerText = data.winner === 'timeout' ? "Zamanınız dolduğu için kaybettiniz!":"Rakibiniz gizli sayıyı önce çözdü!";
             }
-
-            actionBtn.innerHTML = `Ana Menüye Dön <i class="fa-solid fa-house ml-1 text-xs"></i>`;
+            actionBtn.innerHTML = `Lobiye Dön <i class="fa-solid fa-house ml-1 text-xs"></i>`;
             document.getElementById("game-over-modal").classList.remove("hidden");
         }
 
-        function quitCurrentGame() {
-            if(isPvP && pvpGameStateRef) {
-                let nextWinner = (myRole === 'creator' ? 'joiner' : 'creator');
-                pvpGameStateRef.update({ status: 'ended', winner: nextWinner }); pvpGameStateRef.off();
-            }
-            showStartMenu();
-        }
-
         // ==========================================
-        // ⚙️ STANDART OYUN MOTORU KODLARI
+        // ⚙️ OYUN MOTORU VE ZAMANLAYICI ALTYAPISI
         // ==========================================
         function initGame() {
             updateMenuData(); buildUIElements(); gizliSayi = rastgeleSayiUret();
             console.log("🔒 Gizli Sayı:", gizliSayi);
-            currentGuess = []; movesCount = 0; totalSecondsSpent = 0; isGameActive = true;
+            currentGuess = []; movesCount = 0; totalSecondsSpent = 0; isGameActive = true; localGuessesHistory = [];
             
             let config = getRankConfig(playerStats.level);
             maxProMoves = config.maxMoves; timeLeft = config.duration;
@@ -604,6 +637,41 @@
                     <i class="fa-solid fa-flag text-2xl mb-2"></i>Seviye ${playerStats.level} Başladı! Tahminini yap.
                 </div>`;
             setupTimer();
+        }
+
+        function setupTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const timerBox = document.getElementById("timer-box");
+            
+            if (isPvP && pvpTimeMode === 'timed') {
+                timeLeft = 75; // Fix 75 Saniye kuralı
+                document.getElementById("timer-text").innerText = "75s";
+                timerBox.classList.remove("hidden"); timerBox.classList.add("flex");
+                
+                timerInterval = setInterval(() => {
+                    if (!isGameActive) return;
+                    timeLeft--; totalSecondsSpent++;
+                    document.getElementById("timer-text").innerText = `${timeLeft}s`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        // Sıra bendeyken süre bittiyse yenilgiyi gönder
+                        pvpGameStateRef.once('value', (snapshot) => {
+                            let d = snapshot.val();
+                            if(d.turn === myRole && d.status === 'playing') {
+                                pvpGameStateRef.update({ status: 'ended', winner: (myRole === 'creator' ? 'joiner':'creator') });
+                            }
+                        });
+                    }
+                }, 1000);
+            } else if (!isPvP && currentDifficulty === 'pro') {
+                document.getElementById("timer-text").innerText = `${timeLeft}s`;
+                timerBox.classList.remove("hidden"); timerBox.classList.add("flex");
+                timerInterval = setInterval(() => { if (!isGameActive) return; timeLeft--; totalSecondsSpent++; document.getElementById("timer-text").innerText = `${timeLeft}s`; if (timeLeft <= 0) endGame(false, "Zaman Aşımı!"); }, 1000);
+            } else {
+                timerBox.classList.remove("flex"); timerBox.classList.add("hidden");
+                timerInterval = setInterval(() => { if (isGameActive) totalSecondsSpent++; }, 1000);
+            }
         }
 
         function buildUIElements() {
@@ -638,19 +706,6 @@
             let pool = [...allowedPool]; let sonuc = "";
             for (let i = 0; i < maxDigits; i++) { let rIdx = Math.floor(Math.random() * pool.length); sonuc += pool[rIdx]; pool.splice(rIdx, 1); }
             return sonuc;
-        }
-
-        function setupTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            const timerBox = document.getElementById("timer-box");
-            if (currentDifficulty === 'pro') {
-                document.getElementById("timer-text").innerText = `${timeLeft}s`;
-                timerBox.classList.remove("hidden"); timerBox.classList.add("flex");
-                timerInterval = setInterval(() => { if (!isGameActive) return; timeLeft--; totalSecondsSpent++; document.getElementById("timer-text").innerText = `${timeLeft}s`; if (timeLeft <= 0) endGame(false, "Zaman Aşımı!"); }, 1000);
-            } else {
-                timerBox.classList.remove("flex"); timerBox.classList.add("hidden");
-                timerInterval = setInterval(() => { if (isGameActive) totalSecondsSpent++; }, 1000);
-            }
         }
 
         function updateMoveText() {
@@ -697,8 +752,20 @@
 
             if (isPvP) {
                 let nextTurn = (myRole === 'creator') ? 'joiner' : 'creator';
-                if (artiSkor === maxDigits) { pvpGameStateRef.update({ lastGuess: tahminStr, lastGuessResult: sonucMetni, status: 'ended', winner: myRole }); } 
-                else { pvpGameStateRef.update({ turn: nextTurn, lastGuess: tahminStr, lastGuessResult: sonucMetni }); }
+                if (artiSkor === maxDigits) {
+                    // Paketi tek hamlede gönderip bitir
+                    pvpGameStateRef.update({ 
+                        lastGuessData: `${tahminStr}:${sonucMetni}:${playerStats.uid}`,
+                        status: 'ended', 
+                        winner: myRole 
+                    });
+                } else {
+                    // Tahmini ve yeni sırayı tek hamlede buluta işle (Çakışmayı önler)
+                    pvpGameStateRef.update({ 
+                        turn: nextTurn,
+                        lastGuessData: `${tahminStr}:${sonucMetni}:${playerStats.uid}`
+                    });
+                }
             } else {
                 renderHistoryRow(tahminStr, artiSkor, eksiSkor);
                 if (artiSkor === maxDigits) { endGame(true); currentGuess = []; updateInputCells(); return; } 
@@ -728,31 +795,6 @@
             row.innerHTML = cellsHtml + badgeHtml; container.insertBefore(row, container.firstChild);
         }
 
-        function endGame(isWin, reason = "") {
-            isGameActive = false; if (timerInterval) clearInterval(timerInterval); lastResultWin = isWin;
-            const modalTitle = document.getElementById("modal-title"); const modalSubtitle = document.getElementById("modal-subtitle");
-            const iconContainer = document.getElementById("modal-icon-container"); const iconMain = document.getElementById("modal-icon-main");
-            const actionBtn = document.getElementById("modal-action-btn"); const yuanDetayNode = document.getElementById("modal-puan-detay");
-            document.getElementById("modal-diff-text").innerText = currentDifficulty; document.getElementById("modal-diff-spec").innerText = currentDifficulty;
-            document.getElementById("modal-moves").innerText = movesCount; document.getElementById("modal-total-time-spent").innerText = `${totalSecondsSpent}s`;
-
-            if (isWin) {
-                let tahminPuani = 160 - ((movesCount - 1) * 10); if (tahminPuani < 0) tahminPuani = 0;
-                let harcananOnSaniye = Math.floor(totalSecondsSpent / 10); let zamanPuani = Math.max(0, 60 - harcananOnSaniye);
-                let toplamKazanilanPuan = tahminPuani + zamanPuani;
-                playerStats.score += toplamKazanilanPuan; saveStats();
-                document.getElementById("puan-tahmin").innerText = `+${tahminPuani}`; document.getElementById("puan-zaman").innerText = `+${zamanPuani}`; document.getElementById("puan-toplam").innerText = `+${toplamKazanilanPuan}`;
-                yuanDetayNode.style.display = "block"; modalTitle.innerText = "Başarılı!"; modalTitle.className = "text-xl font-black text-emerald-400";
-                modalSubtitle.innerText = `Sayıyı çözdün!`; iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-xl text-emerald-400"; iconMain.className = "fa-solid fa-circle-check";
-                actionBtn.innerHTML = `Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-xs"></i>`;
-            } else {
-                yuanDetayNode.style.display = "none"; modalTitle.innerText = "Başaramadın!"; modalTitle.className = "text-xl font-black text-red-500";
-                modalSubtitle.innerText = `Gizli Sayı: ${gizliSayi} (${reason})`; iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-xl text-red-400"; iconMain.className = "fa-solid fa-triangle-exclamation";
-                actionBtn.innerHTML = `Tekrar Dene <i class="fa-solid fa-rotate-right ml-1 text-xs"></i>`;
-            }
-            document.getElementById("game-over-modal").classList.remove("hidden");
-        }
-
         function nextLevelOrRestart() {
             document.getElementById("game-over-modal").classList.add("hidden");
             if (isPvP) { showStartMenu(); return; }
@@ -760,7 +802,6 @@
                 let oldConfig = getRankConfig(playerStats.level);
                 if (playerStats.level < MAX_LEVELS) playerStats.level++; else playerStats.level = 1;
                 
-                // 🎁 SEVİYE ATLAYINCA +500 PUAN VE JOKER STOKLARI EKLENDİ
                 playerStats.score += 500;
                 playerStats.jokers.ele += 1;
                 playerStats.jokers.fisilda += 1;
@@ -803,19 +844,15 @@
             if (navigator.vibrate) navigator.vibrate(40);
         }
 
-        // 🛒 YENİLENEN ENVENTER TABANLI JOKER SİSTEMİ
         function useJoker(type) {
             if (!isGameActive) return;
             
             if (type === 'ele') {
-                // Önce bedava stok kontrolü, stok yoksa puan kontrolü
-                if (playerStats.jokers.ele > 0) {
-                    playerStats.jokers.ele -= 1;
-                } else {
-                    if (playerStats.score < 100) { alert("Yetersiz Joker Stoğu ve Puan! (100 Puan gerekli)"); return; }
+                if (playerStats.jokers.ele > 0) { playerStats.jokers.ele -= 1; } 
+                else {
+                    if (playerStats.score < 100) { alert("Yetersiz Joker Stoğu ve Puan!"); return; }
                     playerStats.score -= 100;
                 }
-                
                 let olmayanlar = allowedPool.filter(n => !gizliSayi.includes(n)).filter(n => document.getElementById(`key-${n}`).clickState !== 1);
                 if (olmayanlar.length === 0) { alert("Elenecek rakam kalmadı!"); return; }
                 saveStats(); updateMenuData();
@@ -823,13 +860,11 @@
                 const key = document.getElementById(`key-${secilen}`); if (key) { key.clickState = 1; key.classList.remove("key-neutral", "key-green"); key.classList.add("key-red"); }
             
             } else if (type === 'fisilda') {
-                if (playerStats.jokers.fisilda > 0) {
-                    playerStats.jokers.fisilda -= 1;
-                } else {
-                    if (playerStats.score < 200) { alert("Yetersiz Joker Stoğu ve Puan! (200 Puan gerekli)"); return; }
+                if (playerStats.jokers.fisilda > 0) { playerStats.jokers.fisilda -= 1; } 
+                else {
+                    if (playerStats.score < 200) { alert("Yetersiz Joker Stoğu ve Puan!"); return; }
                     playerStats.score -= 200;
                 }
-                
                 let buluncaklar = gizliSayi.split("").filter(n => document.getElementById(`key-${n}`).clickState !== 2);
                 if (buluncaklar.length === 0) { alert("Tüm rakamları buldun!"); return; }
                 saveStats(); updateMenuData();
@@ -838,13 +873,11 @@
                 alert(`Fısıltı: Gizli sayıda "${secilen}" rakamı var!`);
             
             } else if (type === 'basamak') {
-                if (playerStats.jokers.basamak > 0) {
-                    playerStats.jokers.basamak -= 1;
-                } else {
-                    if (playerStats.score < 500) { alert("Yetersiz Joker Stoğu ve Puan! (500 Puan gerekli)"); return; }
+                if (playerStats.jokers.basamak > 0) { playerStats.jokers.basamak -= 1; } 
+                else {
+                    if (playerStats.score < 500) { alert("Yetersiz Joker Stoğu ve Puan!"); return; }
                     playerStats.score -= 500;
                 }
-                
                 let acilmamis = []; for (let i = 0; i < maxDigits; i++) { if (document.getElementById(`cell-${i}`).innerText === "") acilmamis.push(i); }
                 saveStats(); updateMenuData();
                 let targetIdx = acilmamis.length > 0 ? acilmamis[Math.floor(Math.random() * acilmamis.length)] : Math.floor(Math.random() * maxDigits);
