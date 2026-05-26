@@ -6,8 +6,10 @@
     <title>+1 -1 // Online Düello</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         /* ── Reset & Layout ── */
@@ -75,16 +77,49 @@
 
 <body class="flex items-center justify-center h-full w-full p-0 select-none m-0 transition-colors duration-300">
 
-<!-- ═══════════════════════════════════════════════
-     ROOT CONTAINER
-════════════════════════════════════════════════ -->
 <div id="main-container"
      class="theme-dark w-full max-w-md h-full flex flex-col justify-between p-4 shadow-2xl relative overflow-hidden pb-safe pt-safe transition-colors duration-300"
      style="background-color: var(--bg-main); color: var(--text-main);">
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: Onboarding (ilk açılış)
-         └────────────────────────────────────────── -->
+    <div id="auth-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5 modal-enter">
+            <div>
+                <h2 class="text-4xl font-black bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent tracking-tight">+1 -1</h2>
+                <p class="text-xs text-slate-400 font-mono mt-1">Skorunu kilitle, sıralamada yerini al!</p>
+            </div>
+            <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed text-left space-y-2">
+                <p>🙋‍♂️ Hesabını Google ile bağlayarak ilerlemeni koruyabilir,</p>
+                <p>🛡️ Kendine benzersiz bir kullanıcı adı seçebilir,</p>
+                <p>🏆 Global dehalar listesinde zirveye oynayabilirsin.</p>
+            </div>
+            <button id="btn-google-login"
+                    class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg cursor-pointer">
+                <i class="fa-brands fa-google text-red-500 text-base"></i> Google ile Giriş Yap
+            </button>
+        </div>
+    </div>
+
+    <div id="username-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4 modal-enter">
+            <div>
+                <h3 class="text-xl font-black text-amber-400 font-mono">Kimliğini Belirle</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Sayılar alemindeki benzersiz adını seç</p>
+            </div>
+            <div class="space-y-2">
+                <input type="text" id="username-input" placeholder="kullanıcı adı (örn: tetah_mara)"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-white text-sm focus:outline-none focus:border-amber-500"
+                       maxlength="15">
+                <p class="text-[9px] text-slate-500 text-left px-1 font-mono">Türkçe karakter, boşluk içermemeli ve maks 15 karakter olmalıdır.</p>
+            </div>
+            <button id="btn-save-username"
+                    class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3 rounded-xl text-sm active:scale-95 transition-all cursor-pointer">
+                Kimliği Onayla ve Başla
+            </button>
+        </div>
+    </div>
+
     <div id="onboarding-modal"
          class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="w-full max-w-sm bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center space-y-5 modal-enter my-auto max-h-[90vh] overflow-y-auto">
@@ -94,9 +129,7 @@
                 <p class="text-[11px] text-slate-400 font-mono">Sayı Algoritmaları ve Mantık Serüveni</p>
             </div>
 
-            <!-- Kural Kartları -->
             <div class="space-y-3 text-left font-mono text-xs text-slate-200">
-
                 <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex gap-3 items-start">
                     <i class="fa-solid fa-bullseye text-amber-400 text-sm mt-0.5 shrink-0"></i>
                     <div>
@@ -138,23 +171,27 @@
         </div>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: Start Menu
-         └────────────────────────────────────────── -->
     <div id="start-menu-modal"
          class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-40 transition-all duration-300">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4">
 
-            <div>
-                <h2 class="text-3xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-1">+1 -1</h2>
-                <p class="text-xs text-slate-400">Mod seçimi yap ve serüvene başla</p>
+            <div class="flex justify-between items-start">
+                <button id="btn-open-leaderboard" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 border border-slate-700/50 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-trophy mr-1 animate-pulse"></i> Sıralama
+                </button>
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-1">+1 -1</h2>
+                    <p class="text-[10px] text-slate-400 font-mono tracking-wide" id="menu-user-id">@username</p>
+                </div>
+                <button id="btn-logout" class="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 border border-slate-800 hover:text-red-400 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
             </div>
 
-            <!-- Profil Satırı -->
             <div id="btn-open-profile-menu"
                  class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-xs flex flex-col items-center gap-2 text-white font-mono cursor-pointer active:scale-98 transition-all">
                 <div class="flex items-center gap-3 bg-slate-900/40 p-2 rounded-xl w-full justify-center">
-                    <div class="w-10 h-10 rounded-full border border-amber-500/30 overflow-hidden bg-slate-950 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full border border-amber-500/30 overflow-hidden bg-slate-950 flex items-center justify-center relative">
                         <span id="menu-avatar-emoji" class="text-xl">👤</span>
                         <img  id="menu-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
                     </div>
@@ -168,7 +205,6 @@
                 </div>
             </div>
 
-            <!-- Mod Butonları -->
             <div class="space-y-2 text-left">
                 <span class="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider px-1">Tek Oyunculu</span>
 
@@ -214,9 +250,21 @@
         </div>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: PvP Kurulum
-         └────────────────────────────────────────── -->
+    <div id="leaderboard-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl w-full max-w-sm h-[85vh] flex flex-col justify-between shadow-2xl modal-enter">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 shrink-0">
+                <span class="text-sm font-black font-mono text-amber-400"><i class="fa-solid fa-crown mr-1"></i> Global Dehalar Listesi</span>
+                <button id="btn-close-leaderboard" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="leaderboard-list-container" class="flex-1 my-3 overflow-y-auto space-y-2 pr-0.5 text-xs font-mono text-white">
+                </div>
+
+            <p class="text-[9px] text-center text-slate-500 font-mono shrink-0">Sıralama anlık olarak puanlara göre güncellenir.</p>
+        </div>
+    </div>
+
     <div id="pvp-setup-modal"
          class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5 modal-enter">
@@ -230,7 +278,6 @@
                 </button>
             </div>
 
-            <!-- Başlangıç aksiyonları -->
             <div id="pvp-initial-actions" class="space-y-4">
                 <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-left space-y-1.5">
                     <span class="text-[10px] text-slate-400 font-mono font-bold uppercase block">Zaman Denetimi</span>
@@ -262,7 +309,6 @@
                 </div>
             </div>
 
-            <!-- Bekleme ekranı -->
             <div id="pvp-waiting-screen" class="u-hidden space-y-4 py-4">
                 <div id="displayed-room-code"
                      class="text-4xl font-black text-amber-400 tracking-widest font-mono p-4 bg-slate-950 rounded-2xl border border-slate-800">0000</div>
@@ -270,7 +316,6 @@
                 <div class="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
 
-            <!-- Gizli sayı seçim ekranı -->
             <div id="pvp-secret-select-screen" class="u-hidden space-y-4">
                 <div class="text-sm font-bold text-white">
                     Rakibinin Tahmin Etmesi İçin
@@ -289,9 +334,6 @@
         </div>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ HEADER
-         └────────────────────────────────────────── -->
     <header class="h-12 flex justify-between items-center shrink-0 gap-1">
         <div class="flex gap-1.5 items-center">
             <button id="btn-quit-game"
@@ -307,7 +349,7 @@
             <div id="btn-open-profile-header"
                  class="px-2 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 max-w-[130px] truncate cursor-pointer active:scale-95 transition-all"
                  style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
-                <div class="w-6 h-6 rounded-full border border-slate-700/50 flex items-center justify-center overflow-hidden bg-slate-950/40 shrink-0">
+                <div class="w-6 h-6 rounded-full border border-slate-700/50 flex items-center justify-center overflow-hidden bg-slate-950/40 shrink-0 relative">
                     <span id="top-avatar-emoji" class="text-xs">👤</span>
                     <img  id="top-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
                 </div>
@@ -339,9 +381,6 @@
         </div>
     </header>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ JOKER BAR
-         └────────────────────────────────────────── -->
     <div id="joker-bar"
          class="p-1.5 rounded-2xl flex justify-between items-center shrink-0 gap-1.5 text-[11px]"
          style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
@@ -368,9 +407,6 @@
         </button>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ PvP FİLTRE BAR
-         └────────────────────────────────────────── -->
     <div id="pvp-filter-bar"
          class="u-hidden grid grid-cols-3 gap-1 p-1 rounded-xl text-[10px] font-bold font-mono shrink-0 shadow-inner"
          style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
@@ -379,14 +415,8 @@
         <button id="filter-opp-btn" class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">RAKİP</button>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ HISTORY CONTAINER
-         └────────────────────────────────────────── -->
     <main id="history-container" class="flex-1 my-2 overflow-y-auto space-y-2.5 pr-0.5 min-h-0"></main>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ FOOTER: Input + Klavye
-         └────────────────────────────────────────── -->
     <footer class="shrink-0 space-y-3 pb-2 pt-2 border-t"
             style="background-color: var(--bg-main); border-color: var(--border-color);">
         <div id="cells-wrapper" class="flex justify-center gap-3"></div>
@@ -398,9 +428,6 @@
         <div id="keyboard-container" class="space-y-2"></div>
     </footer>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: Game Over
-         └────────────────────────────────────────── -->
     <div id="game-over-modal"
          class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-40">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4 modal-enter">
@@ -455,9 +482,6 @@
         </div>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: Rank Celebration
-         └────────────────────────────────────────── -->
     <div id="rank-celebration-modal"
          class="u-hidden absolute inset-0 bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-4 z-40 modal-enter">
         <div class="w-full max-w-sm text-center space-y-5">
@@ -492,9 +516,6 @@
         </div>
     </div>
 
-    <!-- ┌──────────────────────────────────────────────
-         │ MODAL: Player Card
-         └────────────────────────────────────────── -->
     <div id="player-card-modal"
          class="u-hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-40">
         <div id="player-card-inner"
@@ -507,7 +528,7 @@
                 </button>
             </div>
 
-            <div class="w-18 h-18 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center shadow-md">
+            <div class="w-18 h-18 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center shadow-md relative">
                 <span id="card-avatar-emoji" class="text-2xl">👤</span>
                 <img  id="card-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
             </div>
@@ -547,20 +568,7 @@
         </div>
     </div>
 
-</div><!-- /main-container -->
-
-<!-- ═══════════════════════════════════════════════
-     JAVASCRIPT – Production Refactor
-     
-     Katmanlar (bölümler arası açık sınır):
-       1. CONFIG & CONSTANTS
-       2. STATE MANAGEMENT
-       3. FIREBASE SERVICE  (Network Layer)
-       4. GAME LOGIC CORE
-       5. UI / RENDER CONTROLLER
-       6. EVENT BINDINGS (Bootstrap)
-════════════════════════════════════════════════ -->
-<script>
+</div><script>
 "use strict";
 
 /* ════════════════════════════════════════════════
@@ -578,13 +586,8 @@ const FIREBASE_CONFIG = {
 
 const MAX_LEVELS   = 3024;
 const LS_KEY       = "plusMinus_playerStats";
-const PVP_TIMEOUT  = 75; // seconds
+const PVP_TIMEOUT  = 75; 
 
-/**
- * Seviye → Unvan konfigürasyonu (Fibonacci sıralaması)
- * @param {number} level
- * @returns {{ name, isImg, emoji?, file?, quote, maxMoves, duration }}
- */
 function getRankConfig(level) {
     if      (level >= 21) return { name: "Tetah Mara", isImg: true,  file: "tetah_mara.jpg",  quote: "In for a penny, in for a pound.",                                                       maxMoves: 11, duration: 60  };
     else if (level >= 13) return { name: "Öklid",      isImg: true,  file: "OKLID.jpg",        quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.",                  maxMoves: 11, duration: 75  };
@@ -595,40 +598,20 @@ function getRankConfig(level) {
     else                  return { name: "Çömez",       isImg: false, emoji: "👤",              quote: "Sayılar alemine hoş geldin. Yolun uzun, sabırlı ol!",                               maxMoves: 53, duration: 200 };
 }
 
-
 /* ════════════════════════════════════════════════
    §2 · STATE MANAGEMENT
-   Tüm değişken durumu tek nesne altında.
 ════════════════════════════════════════════════ */
+let playerStats = {
+    level:            1,
+    score:            0,
+    theme:            "dark",
+    uid:              "",
+    username:         "",
+    googlePhoto:      "",
+    jokers:           { ele: 1, fisilda: 1, basamak: 1 },
+    hasSeenOnboarding: false
+};
 
-/** Kalıcı oyuncu verileri (localStorage) */
-const playerStats = (() => {
-    const defaults = {
-        level:            1,
-        score:            0,
-        theme:            "dark",
-        uid:              "user_" + Math.random().toString(36).substr(2, 9),
-        jokers:           { ele: 1, fisilda: 1, basamak: 1 },
-        hasSeenOnboarding: false
-    };
-    try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (raw) {
-            const saved = JSON.parse(raw);
-            return Object.assign(defaults, {
-                level:            saved.level            ?? defaults.level,
-                score:            saved.score            ?? defaults.score,
-                theme:            saved.theme            ?? defaults.theme,
-                uid:              saved.uid              ?? defaults.uid,
-                jokers:           saved.jokers           ?? defaults.jokers,
-                hasSeenOnboarding: saved.hasSeenOnboarding ?? defaults.hasSeenOnboarding
-            });
-        }
-    } catch (_) { /* localStorage okuma hatası → defaults kullan */ }
-    return defaults;
-})();
-
-/** Geçici oyun durumu (oturum boyu sıfırlanır) */
 const gameState = {
     difficulty:          "medium",
     maxDigits:           4,
@@ -641,7 +624,6 @@ const gameState = {
     totalSecondsSpent:   0,
     isActive:            false,
     lastResultWin:       false,
-    // PvP
     isPvP:               false,
     pvpTimeMode:         "timeless",
     roomCode:            null,
@@ -650,11 +632,10 @@ const gameState = {
     localGuessesHistory: []
 };
 
-/** Firebase referansları (listener temizliği için saklanır) */
 const firebaseRefs = {
     db:          null,
+    auth:        null,
     roomRef:     null,
-    /** Mevcut oda dinleyicisini güvenli şekilde kaldırır */
     detachRoom() {
         if (this.roomRef) {
             this.roomRef.off();
@@ -663,7 +644,6 @@ const firebaseRefs = {
     }
 };
 
-/** Zamanlayıcı tutamaçları */
 const timers = {
     game:  null,
     clear() {
@@ -671,38 +651,150 @@ const timers = {
     }
 };
 
-/**
- * playerStats'ı localStorage'a yazar.
- */
 function saveStats() {
     try {
         localStorage.setItem(LS_KEY, JSON.stringify(playerStats));
+        if (firebaseRefs.db && playerStats.uid && playerStats.username) {
+            firebaseRefs.db.ref("kullanicilar/" + playerStats.uid).set(playerStats);
+        }
     } catch (err) {
-        console.warn("[Storage] Kayıt başarısız:", err);
+        console.warn("[Storage] Bulut/Yerel kayıt başarısız:", err);
     }
 }
 
-
 /* ════════════════════════════════════════════════
    §3 · FIREBASE SERVICE  (Network Layer)
-   Tüm veritabanı okuma/yazma bu katmanda.
 ════════════════════════════════════════════════ */
-
-/** Firebase'i başlatır ve db referansını saklar. */
 function initFirebase() {
     try {
         firebase.initializeApp(FIREBASE_CONFIG);
         firebaseRefs.db = firebase.database();
+        firebaseRefs.auth = firebase.auth();
+        
+        // Auth Listener Döngüsü
+        firebaseRefs.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                playerStats.uid = user.uid;
+                playerStats.googlePhoto = user.photoURL || "";
+                
+                // Kullanıcı kaydı var mı kontrol et
+                const snapshot = await firebaseRefs.db.ref("kullanicilar/" + user.uid).once("value");
+                const cloudData = snapshot.val();
+                
+                if (cloudData && cloudData.username) {
+                    playerStats = cloudData;
+                    UI.modal.hide("auth-modal");
+                    checkOnboardingState();
+                } else {
+                    // İlk kez giriyor, username modalını aç
+                    UI.modal.hide("auth-modal");
+                    UI.modal.show("username-modal");
+                }
+            } else {
+                UI.modal.show("auth-modal");
+            }
+        });
     } catch (err) {
         console.error("[Firebase] Başlatma hatası:", err);
         UI.showError("Firebase bağlantısı kurulamadı. Sayfayı yenileyin.");
     }
 }
 
-/**
- * Yeni bir PvP odası oluşturur.
- * @returns {Promise<void>}
- */
+async function handleGoogleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        await firebaseRefs.auth.signInWithRedirect(provider);
+    } catch (err) {
+        console.error("[Auth] Giriş Hatası:", err);
+        UI.showError("Google giriş işlemi başlatılamadı.");
+    }
+}
+
+async function handleLogout() {
+    try {
+        await firebaseRefs.auth.signOut();
+        localStorage.removeItem(LS_KEY);
+        window.location.reload();
+    } catch (err) {
+        UI.showError("Çıkış yapılamadı.");
+    }
+}
+
+async function checkAndSaveUsername() {
+    const input = UI.el("username-input").value.trim().toLowerCase();
+    const regex = /^[a-z0-9_]{3,15}$/;
+    
+    if (!regex.test(input)) {
+        UI.showError("Geçersiz format! Sadece küçük harf, rakam ve alt çizgi kullanın (3-15 karakter).");
+        return;
+    }
+    
+    try {
+        const checkRef = firebaseRefs.db.ref("usernames/" + input);
+        const snapshot = await checkRef.once("value");
+        if (snapshot.exists()) {
+            UI.showError("Bu kullanıcı adı başka bir deha tarafından kapılmış!");
+            return;
+        }
+        
+        // Kullanıcı adını bağla
+        await checkRef.set(playerStats.uid);
+        playerStats.username = input;
+        
+        // Hafızadaki yerel ilerlemeyi de buluta pushla
+        saveStats();
+        
+        UI.modal.hide("username-modal");
+        checkOnboardingState();
+    } catch (err) {
+        UI.showError("Kullanıcı adı kaydedilemedi.");
+    }
+}
+
+async function fbLoadLeaderboard() {
+    try {
+        const snapshot = await firebaseRefs.db.ref("kullanicilar").orderByChild("score").limitToLast(30).once("value");
+        const listContainer = UI.el("leaderboard-list-container");
+        listContainer.innerHTML = "";
+        
+        let users = [];
+        snapshot.forEach((child) => {
+            users.push(child.val());
+        });
+        users.reverse(); // En yüksek puan üstte dursun
+        
+        users.forEach((u, index) => {
+            const row = document.createElement("div");
+            row.className = `flex items-center justify-between p-2.5 rounded-xl border ${
+                u.uid === playerStats.uid ? "bg-amber-500/10 border-amber-500/40" : "bg-slate-950/40 border-slate-800"
+            }`;
+            
+            let rankBadge = `<span class="w-5 text-slate-500 font-bold">${index + 1}.</span>`;
+            if (index === 0) rankBadge = `<span class="w-5 text-amber-400 font-black">🥇</span>`;
+            if (index === 1) rankBadge = `<span class="w-5 text-slate-300 font-black">🥈</span>`;
+            if (index === 2) rankBadge = `<span class="w-5 text-orange-400 font-black">🥉</span>`;
+            
+            const userPhoto = u.googlePhoto 
+                ? `<img src="${u.googlePhoto}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-700">`
+                : `<span class="text-xs">👤</span>`;
+                
+            row.innerHTML = `
+                <div class="flex items-center gap-2 truncate">
+                    ${rankBadge}
+                    ${userPhoto}
+                    <span class="font-bold truncate ${u.uid === playerStats.uid ? "text-amber-400" : "text-slate-200"}">@${u.username}</span>
+                    <span class="text-[9px] px-1 bg-slate-800 rounded text-slate-400">LVL ${u.level}</span>
+                </div>
+                <div class="font-black text-emerald-400">${u.score} P</div>
+            `;
+            listContainer.appendChild(row);
+        });
+        UI.modal.show("leaderboard-modal");
+    } catch (err) {
+        console.error("Skor tablosu yüklenemedi:", err);
+    }
+}
+
 async function fbCreateRoom() {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     gameState.roomCode = code;
@@ -726,22 +818,15 @@ async function fbCreateRoom() {
         UI.pvp.showWaiting(code);
         fbBindRoomListener();
     } catch (err) {
-        console.error("[Firebase] Oda kurma hatası:", err);
-        UI.showError("Oda oluşturulamadı. İnternet bağlantınızı kontrol edin.");
+        UI.showError("Oda oluşturulamadı.");
     }
 }
 
-/**
- * Var olan bir odaya katılır.
- * @param {string} code - 4 haneli oda kodu
- * @returns {Promise<void>}
- */
 async function fbJoinRoom(code) {
     if (!code || code.length !== 4) {
         UI.showError("Lütfen 4 haneli oda kodunu girin.");
         return;
     }
-
     const ref = firebaseRefs.db.ref("odalar/" + code);
     firebaseRefs.roomRef = ref;
 
@@ -766,15 +851,10 @@ async function fbJoinRoom(code) {
         UI.pvp.showSecretSelect();
         fbBindRoomListener();
     } catch (err) {
-        console.error("[Firebase] Odaya katılma hatası:", err);
-        UI.showError("Odaya katılınamadı. İnternet bağlantınızı kontrol edin.");
+        UI.showError("Odaya katılınamadı.");
     }
 }
 
-/**
- * Gizli sayıyı Firebase'e gönderir; iki taraf da hazırsa oyunu başlatır.
- * @param {string} secretNum
- */
 async function fbSubmitSecret(secretNum) {
     const update = gameState.myRole === "creator"
         ? { creatorSecret: secretNum }
@@ -790,17 +870,10 @@ async function fbSubmitSecret(secretNum) {
             await firebaseRefs.roomRef.update({ status: "playing" });
         }
     } catch (err) {
-        console.error("[Firebase] Gizli sayı gönderme hatası:", err);
-        UI.showError("Gizli sayı kaydedilemedi. Tekrar deneyin.");
+        UI.showError("Gizli sayı kaydedilemedi.");
     }
 }
 
-/**
- * Tahmin sonucunu Firebase'e yazar.
- * @param {string} guessStr
- * @param {string} resultStr  "+A -B" formatında
- * @param {boolean} isWin
- */
 async function fbWriteGuess(guessStr, resultStr, isWin) {
     const nextTurn = gameState.myRole === "creator" ? "joiner" : "creator";
     const guessData = `${guessStr}:${resultStr}:${playerStats.uid}`;
@@ -819,15 +892,10 @@ async function fbWriteGuess(guessStr, resultStr, isWin) {
             });
         }
     } catch (err) {
-        console.error("[Firebase] Hamle yazma hatası:", err);
-        UI.showError("Hamle kaydedilemedi. İnternet bağlantınızı kontrol edin.");
+        UI.showError("Hamle kaydedilemedi.");
     }
 }
 
-/**
- * PvP odasının canlı dinleyicisini kurar.
- * Önceki dinleyiciyi temizler (memory-leak koruması).
- */
 function fbBindRoomListener() {
     if (!firebaseRefs.roomRef) return;
 
@@ -835,7 +903,6 @@ function fbBindRoomListener() {
         const data = snapshot.val();
         if (!data) return;
 
-        // Creator'ın joiner'ı beklerken gizli sayı ekranına geçişi
         if (
             data.status === "waiting"      &&
             data.joinerId !== ""           &&
@@ -845,7 +912,6 @@ function fbBindRoomListener() {
             UI.pvp.showSecretSelect();
         }
 
-        // Oyun başladı
         if (data.status === "playing") {
             if (!gameState.isActive || !gameState.isPvP) {
                 UI.modal.hide("pvp-setup-modal");
@@ -856,21 +922,15 @@ function fbBindRoomListener() {
             }
         }
 
-        // Oyun bitti
         if (data.status === "ended" && gameState.isActive) {
             GameLogic.endPvP(data);
         }
     }, (err) => {
-        console.error("[Firebase] Oda dinleyici hatası:", err);
         UI.showError("Bağlantı kesildi. Menüye dönülüyor...");
         setTimeout(() => UI.showStartMenu(), 2000);
     });
 }
 
-/**
- * Gelen lastGuessData'yı parse eder ve history'ye ekler (tekrar korumalı).
- * @param {{ lastGuessData: string, turn: string }} data
- */
 function _processIncomingGuess(data) {
     if (!data.lastGuessData) return;
 
@@ -896,29 +956,20 @@ function _processIncomingGuess(data) {
     }
 }
 
-/**
- * Oyundan çıkarken odayı "ended" olarak işaretler ve dinleyiciyi kapatır.
- */
 async function fbQuitRoom() {
     if (!firebaseRefs.roomRef) return;
     const otherRole = gameState.myRole === "creator" ? "joiner" : "creator";
     try {
         await firebaseRefs.roomRef.update({ status: "ended", winner: otherRole });
-    } catch (_) { /* Çıkışta hata baskılanır */ }
+    } catch (_) {}
     firebaseRefs.detachRoom();
 }
 
-
 /* ════════════════════════════════════════════════
    §4 · GAME LOGIC CORE
-   Sayı üretimi, tahmin hesaplama, oyun akışı.
 ════════════════════════════════════════════════ */
 const GameLogic = {
 
-    /**
-     * Tek oyunculu oyunu başlatır.
-     * @param {"basic"|"medium"|"pro"} diff
-     */
     startSinglePlayer(diff) {
         gameState.isPvP       = false;
         gameState.difficulty  = diff;
@@ -933,10 +984,6 @@ const GameLogic = {
         this.initRound();
     },
 
-    /**
-     * PvP oyununu başlatır.
-     * @param {{ creatorSecret, joinerSecret }} data
-     */
     startPvP(data) {
         gameState.isPvP        = true;
         gameState.isActive     = true;
@@ -963,9 +1010,6 @@ const GameLogic = {
         UI.renderFilteredHistory();
     },
 
-    /**
-     * Her tur başında çağrılır (tek oyuncu).
-     */
     initRound() {
         UI.updateMenuData();
         UI.buildGameElements();
@@ -981,7 +1025,6 @@ const GameLogic = {
         gameState.maxProMoves = cfg.maxMoves;
         gameState.timeLeft    = cfg.duration;
 
-        // Geliştirici kolaylığı — prodüksiyonda kaldırılabilir
         console.log("🔒 Gizli Sayı:", gameState.secretNumber);
 
         UI.updateMoveText();
@@ -994,10 +1037,6 @@ const GameLogic = {
         this.setupTimer();
     },
 
-    /**
-     * Tekrarsız rastgele gizli sayı üretir.
-     * @returns {string}
-     */
     generateSecret() {
         const pool = [...gameState.allowedPool];
         let result = "";
@@ -1009,12 +1048,6 @@ const GameLogic = {
         return result;
     },
 
-    /**
-     * Tahmin skorunu hesaplar.
-     * @param {string} guess
-     * @param {string} secret
-     * @returns {{ plus: number, minus: number }}
-     */
     calcScore(guess, secret) {
         let plus = 0, minus = 0;
         for (let i = 0; i < secret.length; i++) {
@@ -1024,9 +1057,6 @@ const GameLogic = {
         return { plus, minus };
     },
 
-    /**
-     * Geçerli tahmini gönderir (hem tek oyunculu hem PvP).
-     */
     submitGuess() {
         if (!gameState.isActive || gameState.currentGuess.length !== gameState.maxDigits) {
             UI.shakeCells();
@@ -1034,7 +1064,6 @@ const GameLogic = {
         }
 
         if (gameState.isPvP) {
-            // Tur kontrolü async şekilde yapılır
             firebaseRefs.roomRef.once("value", (snapshot) => {
                 const data = snapshot.val();
                 if (!data || data.status !== "playing") return;
@@ -1044,15 +1073,13 @@ const GameLogic = {
                 }
                 this._executeSubmit();
             }).catch(err => {
-                console.error("[GameLogic] Tur kontrolü hatası:", err);
-                UI.showError("Hamle gönderilemedi. İnternet bağlantınızı kontrol edin.");
+                UI.showError("Hamle gönderilemedi.");
             });
         } else {
             this._executeSubmit();
         }
     },
 
-    /** Tahmin işleminin ortak çekirdeği. */
     _executeSubmit() {
         const emptyState = document.getElementById("empty-state");
         if (emptyState) emptyState.style.display = "none";
@@ -1081,7 +1108,6 @@ const GameLogic = {
                 UI.updateInputCells();
                 return;
             }
-            // Pro modda her hamlede süre sıfırlanır
             if (gameState.difficulty === "pro") {
                 gameState.timeLeft = getRankConfig(playerStats.level).duration;
                 UI.el("timer-text").textContent = `${gameState.timeLeft}s`;
@@ -1092,11 +1118,6 @@ const GameLogic = {
         UI.updateInputCells();
     },
 
-    /**
-     * Tek oyunculu oyun bitiş akışı.
-     * @param {boolean} isWin
-     * @param {string}  reason
-     */
     endSinglePlayer(isWin, reason = "") {
         gameState.isActive = false;
         timers.clear();
@@ -1114,10 +1135,6 @@ const GameLogic = {
         }
     },
 
-    /**
-     * PvP oyun bitiş akışı.
-     * @param {{ winner: string }} data
-     */
     endPvP(data) {
         gameState.isActive = false;
         timers.clear();
@@ -1135,9 +1152,6 @@ const GameLogic = {
         });
     },
 
-    /**
-     * Seviye ilerlemesi ve yeniden başlatma.
-     */
     nextLevelOrRestart() {
         UI.modal.hide("game-over-modal");
         if (gameState.isPvP) { UI.showStartMenu(); return; }
@@ -1160,10 +1174,6 @@ const GameLogic = {
         this.initRound();
     },
 
-    /**
-     * Tarihçe filtresi değiştirir (PvP).
-     * @param {"all"|"me"|"opp"} filter
-     */
     changeHistoryFilter(filter) {
         gameState.currentFilter = filter;
         const map = { all: "filter-all-btn", me: "filter-me-btn", opp: "filter-opp-btn" };
@@ -1176,9 +1186,6 @@ const GameLogic = {
         UI.renderFilteredHistory();
     },
 
-    /**
-     * Zamanlayıcıyı (mod bağlı) kurar.
-     */
     setupTimer() {
         timers.clear();
         const timerBox = UI.el("timer-box");
@@ -1202,7 +1209,7 @@ const GameLogic = {
                         if (d?.turn === gameState.myRole && d?.status === "playing") {
                             const loser  = gameState.myRole;
                             const winner = loser === "creator" ? "joiner" : "creator";
-                            firebaseRefs.roomRef.update({ status: "ended", winner }).catch(console.error);
+                            firebaseRefs.roomRef.update({ status: 'ended', winner }).catch(console.error);
                         }
                     }).catch(console.error);
                 }
@@ -1224,23 +1231,16 @@ const GameLogic = {
         } else {
             timerBox.classList.add("u-hidden");
             timerBox.classList.remove("flex");
-            // Süresiz modlarda sadece harcanan saniyeyi say
             timers.game = setInterval(() => {
                 if (gameState.isActive) gameState.totalSecondsSpent++;
             }, 1000);
         }
     },
 
-    /**
-     * Joker kullanımı.
-     * @param {"ele"|"fisilda"|"basamak"} type
-     */
     useJoker(type) {
         if (!gameState.isActive) return;
-
         const costs = { ele: 100, fisilda: 200, basamak: 500 };
 
-        // Stok veya puan kontrolü
         if (playerStats.jokers[type] > 0) {
             playerStats.jokers[type]--;
         } else {
@@ -1270,7 +1270,7 @@ const GameLogic = {
             if (candidates.length === 0) { UI.showError("Tüm rakamları buldun!"); return; }
             const picked = candidates[Math.floor(Math.random() * candidates.length)];
             _setKeyState(picked, 2);
-            UI.showError(`Fısıltı: Gizli sayıda "${picked}" rakamı var!`); // bilgi mesajı
+            UI.showError(`Fısıltı: Gizli sayıda "${picked}" rakamı var!`); 
 
         } else if (type === "basamak") {
             const unopened = [];
@@ -1288,11 +1288,6 @@ const GameLogic = {
     }
 };
 
-/**
- * Klavye tuşu görsel durumunu ayarlar.
- * @param {string} digit
- * @param {0|1|2} state  0=neutral 1=red 2=green
- */
 function _setKeyState(digit, state) {
     const key = document.getElementById(`key-${digit}`);
     if (!key) return;
@@ -1303,24 +1298,15 @@ function _setKeyState(digit, state) {
     else                  key.classList.add("key-neutral");
 }
 
-
 /* ════════════════════════════════════════════════
    §5 · UI / RENDER CONTROLLER
-   Tüm DOM okuma/yazma işlemleri bu nesnede.
 ════════════════════════════════════════════════ */
 const UI = {
-
-    /** getElementById kısayolu */
     el(id) { return document.getElementById(id); },
-
-    // ── Modal yardımcıları ─────────────────────────
-
     modal: {
         show(id) { UI.el(id)?.classList.remove("u-hidden"); },
         hide(id) { UI.el(id)?.classList.add("u-hidden");    }
     },
-
-    // ── Başlangıç menüsü ──────────────────────────
 
     showStartMenu() {
         this.modal.hide("game-over-modal");
@@ -1341,12 +1327,11 @@ const UI = {
         this.updateMenuData();
     },
 
-    // ── Menü & header verileri ────────────────────
-
     updateMenuData() {
         const stats  = playerStats;
         const config = getRankConfig(stats.level);
 
+        this.el("menu-user-id").textContent = stats.username ? `@${stats.username}` : "@username";
         this.el("menu-level-text").textContent = stats.level;
         this.el("menu-score-text").textContent = stats.score;
         this.el("top-score-text").textContent  = stats.score;
@@ -1367,16 +1352,21 @@ const UI = {
         this.applyTheme();
     },
 
-    /** Avatar elementlerini config'e göre günceller */
     _applyAvatarToTargets(config, targets) {
         targets.forEach(({ emoji, img }) => {
             const emojiEl = this.el(emoji);
             const imgEl   = this.el(img);
             if (!emojiEl || !imgEl) return;
+            
+            // Eğer seviye deha basamağındaysa deha görselini, değilse Google fotosunu bas
             if (config.isImg) {
                 emojiEl.classList.add("u-hidden");
                 imgEl.classList.remove("u-hidden");
                 imgEl.src = config.file;
+            } else if (playerStats.googlePhoto && playerStats.googlePhoto !== "") {
+                emojiEl.classList.add("u-hidden");
+                imgEl.classList.remove("u-hidden");
+                imgEl.src = playerStats.googlePhoto;
             } else {
                 imgEl.classList.add("u-hidden");
                 emojiEl.classList.remove("u-hidden");
@@ -1384,8 +1374,6 @@ const UI = {
             }
         });
     },
-
-    // ── Profil Kartı ─────────────────────────────
 
     openProfileCard() {
         const config = getRankConfig(playerStats.level);
@@ -1404,8 +1392,6 @@ const UI = {
 
     closeProfileCard() { this.modal.hide("player-card-modal"); },
 
-    // ── Tema ─────────────────────────────────────
-
     toggleTheme() {
         playerStats.theme = playerStats.theme === "dark" ? "light" : "dark";
         saveStats();
@@ -1413,8 +1399,8 @@ const UI = {
     },
 
     applyTheme() {
-        const container  = this.el("main-container");
-        const themeIcon  = this.el("theme-btn-icon");
+        const container = this.el("main-container");
+        const themeIcon = this.el("theme-btn-icon");
         if (playerStats.theme === "light") {
             container.classList.replace("theme-dark", "theme-light");
             themeIcon.className = "fa-solid fa-moon text-indigo-500";
@@ -1424,10 +1410,7 @@ const UI = {
         }
     },
 
-    // ── Oyun Elemanları Oluşturma ─────────────────
-
     buildGameElements() {
-        // Giriş hücreleri
         const wrapper = this.el("cells-wrapper");
         wrapper.innerHTML = "";
         for (let i = 0; i < gameState.maxDigits; i++) {
@@ -1438,7 +1421,6 @@ const UI = {
             wrapper.appendChild(cell);
         }
 
-        // Klavye
         const kbContainer = this.el("keyboard-container");
         kbContainer.innerHTML = "";
 
@@ -1462,7 +1444,6 @@ const UI = {
                     ${_subBtn("h-12")}
                 </div>`;
         }
-
         this._bindTouchControls();
     },
 
@@ -1477,20 +1458,13 @@ const UI = {
             let touchStartTime = 0, touchTimer = null, isLongPress = false;
 
             key.ontouchstart = (e) => {
-                e.preventDefault();
-                isLongPress = false;
-                touchStartTime = Date.now();
-                touchTimer = setTimeout(() => {
-                    isLongPress = true;
-                    this._triggerLongPress(key, n);
-                }, 400);
+                e.preventDefault(); isLongPress = false; touchStartTime = Date.now();
+                touchTimer = setTimeout(() => { isLongPress = true; this._triggerLongPress(key, n); }, 400);
             };
             key.ontouchend = (e) => {
-                e.preventDefault();
-                clearTimeout(touchTimer);
+                e.preventDefault(); clearTimeout(touchTimer);
                 if (!isLongPress && (Date.now() - touchStartTime < 400)) this.inputDigit(n);
             };
-            // Masaüstü fallback
             key.onclick = () => { if (!("ontouchstart" in window)) this.inputDigit(n); };
         });
     },
@@ -1501,8 +1475,6 @@ const UI = {
         _setKeyState(digit, key.clickState);
         if (navigator.vibrate) navigator.vibrate(40);
     },
-
-    // ── Input & Hücre ─────────────────────────────
 
     inputDigit(digit) {
         if (!gameState.isActive || gameState.currentGuess.length >= gameState.maxDigits) return;
@@ -1540,8 +1512,6 @@ const UI = {
         }
     },
 
-    // ── Hamle Sayacı ─────────────────────────────
-
     updateMoveText() {
         const container = this.el("move-text-container");
         if (gameState.isPvP) {
@@ -1552,8 +1522,6 @@ const UI = {
             container.innerHTML = `Hamle: <span class="font-bold text-orange-400">${gameState.movesCount}</span>`;
         }
     },
-
-    // ── Tarihçe Satırı ────────────────────────────
 
     renderHistoryRow(tahmin, arti, eksi) {
         const container = this.el("history-container");
@@ -1626,8 +1594,6 @@ const UI = {
         }
     },
 
-    // ── Game Over Modal ───────────────────────────
-
     showGameOverModal({ isWin, tahminPuani = 0, zamanPuani = 0, toplam = 0, reason = "" }) {
         const iconContainer = this.el("modal-icon-container");
         const iconMain      = this.el("modal-icon-main");
@@ -1690,8 +1656,6 @@ const UI = {
         this.modal.show("game-over-modal");
     },
 
-    // ── Rank Celebration ─────────────────────────
-
     showRankCelebration(config) {
         this.el("celeb-rank-name").textContent = config.name;
         this.el("celeb-quote").textContent     = config.quote;
@@ -1705,8 +1669,6 @@ const UI = {
         this.modal.hide("rank-celebration-modal");
         GameLogic.initRound();
     },
-
-    // ── PvP UI helpers ────────────────────────────
 
     pvp: {
         showWaiting(code) {
@@ -1744,19 +1706,11 @@ const UI = {
         }
     },
 
-    // ── Genel bildirim ────────────────────────────
-
-    /**
-     * Kullanıcıya mesaj gösterir (alert yerine; genişletilebilir).
-     * @param {string} msg
-     */
     showError(msg) {
-        // Basit alert – ilerleyen versiyonlarda toast bileşeniyle değiştirilebilir
         alert(msg);
     }
 };
 
-// ── Klavye HTML yardımcıları (saf fonksiyon) ─────
 function _keyBtn(n) {
     return `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`;
 }
@@ -1767,8 +1721,6 @@ function _subBtn(h) {
     return `<button id="btn-sub" class="${h} bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>`;
 }
 
-
-// ── PvP Zaman Modu toggle ────────────────────────
 function setPvPTimeMode(mode) {
     gameState.pvpTimeMode = mode;
     const timelessBtn = UI.el("mode-timeless-btn");
@@ -1779,13 +1731,27 @@ function setPvPTimeMode(mode) {
     timedBtn.className    = mode === "timed"    ? active : inactive;
 }
 
+function checkOnboardingState() {
+    if (!playerStats.hasSeenOnboarding) {
+        UI.modal.show("onboarding-modal");
+    } else {
+        UI.showStartMenu();
+    }
+}
 
 /* ════════════════════════════════════════════════
    §6 · EVENT BINDINGS (Bootstrap)
-   Tüm addEventListener çağrıları burada.
-   HTML'de onclick kalmaz.
 ════════════════════════════════════════════════ */
 function bindEvents() {
+    // Auth & Giriş
+    UI.el("btn-google-login").addEventListener("click", () => handleGoogleLogin());
+    UI.el("btn-save-username").addEventListener("click", () => checkAndSaveUsername());
+    UI.el("btn-logout").addEventListener("click", () => handleLogout());
+
+    // Sıralama (Leaderboard)
+    UI.el("btn-open-leaderboard").addEventListener("click", () => fbLoadLeaderboard());
+    UI.el("btn-close-leaderboard").addEventListener("click", () => UI.modal.hide("leaderboard-modal"));
+
     // Onboarding
     UI.el("btn-onboarding-start").addEventListener("click", () => {
         playerStats.hasSeenOnboarding = true;
@@ -1858,12 +1824,6 @@ function bindEvents() {
 window.addEventListener("load", () => {
     initFirebase();
     bindEvents();
-
-    if (!playerStats.hasSeenOnboarding) {
-        UI.modal.show("onboarding-modal");
-    } else {
-        UI.showStartMenu();
-    }
 });
 </script>
 </body>
