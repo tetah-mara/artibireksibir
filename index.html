@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>+1 -1 // Online Düello</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet font-awesome" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -30,10 +30,7 @@
             --bg-kb:      #0f172a;
             --text-main:  #f8fafc;
             --text-muted: #94a3b8;
-            --border:     #334155;
-            --accent:     #6366f1;
-            --accent-hov: #4f46e5;
-            --primary:    #4f46e5;
+            --border-color: #334155;
         }
         .theme-light {
             --bg-main:    #f1f5f9;
@@ -41,756 +38,1574 @@
             --bg-kb:      #e2e8f0;
             --text-main:  #0f172a;
             --text-muted: #64748b;
-            --border:     #cbd5e1;
-            --accent:     #4f46e5;
-            --accent-hov: #4338ca;
-            --primary:    #4338ca;
+            --border-color: #cbd5e1;
         }
 
-        /* ── Core Classes ── */
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            font-family: system-ui, -apple-system, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+        /* ── Keyboard Key States ── */
+        .key-neutral {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border-color: var(--border-color) !important;
+            font-weight: bold !important;
         }
-        .app-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
+        .key-red {
+            background-color: #7f1d1d !important;
+            color: #fca5a5 !important;
+            border-color: #b91c1c !important;
+            text-decoration: line-through !important;
+            font-weight: bold !important;
         }
-        .app-kb {
-            background-color: var(--bg-kb);
-        }
-        .app-border {
-            border-color: var(--border);
-        }
-        .text-muted {
-            color: var(--text-muted);
-        }
-        .btn-accent {
-            background-color: var(--accent);
-            color: #ffffff;
-            transition: background-color 0.2s;
-        }
-        .btn-accent:hover {
-            background-color: var(--accent-hov);
+        .key-green {
+            background-color: #047857 !important;
+            color: #ffffff !important;
+            border-color: #10b981 !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
         }
 
-        /* ── Custom Utilities ── */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .grid-kb {
-            display: grid;
-            grid-template-columns: repeat(10, minmax(0, 1fr));
-            gap: 4px;
+        /* ── Modal Fade-in Animation ── */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
+        .modal-enter { animation: fadeIn 0.22s ease-out both; }
 
-        /* ── Safe Area Padding for Notch Devices ── */
-        .safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
-        .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-
-        /* ── Confetti Particle Styles ── */
-        .confetti {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            opacity: 0.8;
-            border-radius: 50%;
-            animation: fall linear forwards;
-            pointer-events: none;
-        }
-        @keyframes fall {
-            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
+        /* ── Utility: hide/show helpers ── */
+        .u-hidden { display: none !important; }
     </style>
 </head>
-<body class="theme-dark select-none antialiased">
 
-    <div id="loading-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white">
-        <div class="relative w-24 h-24 mb-6">
-            <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
-            <div class="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
-            <div class="absolute inset-0 flex items-center justify-center text-xl font-bold tracking-widest text-indigo-400 animate-pulse">±1</div>
-        </div>
-        <h1 class="text-2xl font-bold tracking-wide">YÜKLENİYOR</h1>
-        <p class="text-sm text-slate-400 mt-2">Daha akıllı bir düello deneyimi için...</p>
-    </div>
+<body class="flex items-center justify-center h-full w-full p-0 select-none m-0 transition-colors duration-300">
 
-    <div id="auth-screen" class="fixed inset-0 z-40 hidden flex-col items-center justify-center bg-slate-950 p-6">
-        <div id="auth-login-view" class="w-full max-w-sm flex flex-col items-center text-center space-y-6">
-            <div class="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 text-3xl font-extrabold text-white mb-2">±1</div>
+<div id="main-container"
+     class="theme-dark w-full max-w-md h-full flex flex-col justify-between p-4 shadow-2xl relative overflow-hidden pb-safe pt-safe transition-colors duration-300"
+     style="background-color: var(--bg-main); color: var(--text-main);">
+
+    <div id="auth-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5 modal-enter">
             <div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">Dehalar Arenası</h2>
-                <p class="text-sm text-slate-400 mt-2">İstatistiğini kaydetmek, sıralamada yükselmek bir kullanıcı adı seçmek için giriş yapın.</p>
+                <h2 class="text-4xl font-black bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent tracking-tight">+1 -1</h2>
+                <p class="text-xs text-slate-400 font-mono mt-1">Skorunu kilitle, sıralamada yerini al!</p>
             </div>
-            <button id="btn-google-login" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-semibold py-3.5 px-4 rounded-xl shadow-md transition transform active:scale-[0.98] cursor-pointer">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12.24 10.285V13.4h6.86c-.277 1.56-1.602 4.585-6.86 4.585-4.54 0-8.24-3.765-8.24-8.4s3.7-8.4 8.24-8.4c2.58 0 4.307 1.095 5.298 2.045l2.465-2.37C18.435 1.21 15.62 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.4-.195-1.925H12.24z"/>
-                </svg>
-                Google ile Giriş Yap
+            <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed text-left space-y-2">
+                <p>🙋‍♂️ Hesabını Google ile bağlayarak ilerlemeni koruyabilir,</p>
+                <p>🛡️ Kendine benzersiz bir kullanıcı adı seçebilir,</p>
+                <p>🏆 Global dehalar listesinde zirveye oynayabilirsin.</p>
+            </div>
+            <button id="btn-google-login"
+                    class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg cursor-pointer">
+                <i class="fa-brands fa-google text-red-500 text-base"></i> Google ile Giriş Yap
             </button>
-        </div>
-
-        <div id="auth-username-view" class="w-full max-w-sm hidden flex flex-col space-y-5 app-card p-6 rounded-2xl">
-            <div class="text-center">
-                <h3 class="text-xl font-bold">Kullanıcı Adı Belirle</h3>
-                <p class="text-xs text-muted mt-1">Sıralama tablosunda bu isimle görüneceksin.</p>
-            </div>
-            <div class="relative">
-                <span class="absolute left-4 top-3.5 text-muted font-semibold">@</span>
-                <input type="text" id="input-username" maxlength="15" placeholder="deha_avcisi" class="w-full bg-slate-900 border app-border text-white rounded-xl py-3 py-3.5 pl-9 pr-4 focus:outline-none focus:border-indigo-500 text-sm">
-            </div>
-            <p id="username-error-msg" class="text-xs text-red-400 hidden text-center font-medium"></p>
-            <button id="btn-save-username" class="w-full btn-accent font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/20 text-sm cursor-pointer">Arenaya Adım At</button>
         </div>
     </div>
 
-    <div class="h-full w-full max-w-md mx-auto flex flex-col justify-between safe-top safe-bottom px-4 relative">
-        
-        <header class="flex items-center justify-between py-2">
-            <button id="btn-open-profile-header" class="flex items-center gap-3 active:scale-95 transition focus:outline-none text-left cursor-pointer">
-                <img id="header-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" class="w-10 h-10 rounded-xl bg-slate-800 border-2 border-indigo-500/30 p-0.5 object-cover" alt="Avatar">
+    <div id="username-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4 modal-enter">
+            <div>
+                <h3 class="text-xl font-black text-amber-400 font-mono">Kimliğini Belirle</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Sayılar alemindeki benzersiz adını seç</p>
+            </div>
+            <div class="space-y-2">
+                <input type="text" id="username-input" placeholder="kullanıcı adı (örn: tetah_mara)"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-white text-sm focus:outline-none focus:border-amber-500"
+                       maxlength="15">
+                <p class="text-[9px] text-slate-500 text-left px-1 font-mono">Türkçe karakter, boşluk içermemeli ve maks 15 karakter olmalıdır.</p>
+            </div>
+            <button id="btn-save-username"
+                    class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3 rounded-xl text-sm active:scale-95 transition-all cursor-pointer">
+                Kimliği Onayla ve Başla
+            </button>
+        </div>
+    </div>
+
+    <div id="onboarding-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-2xl flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center space-y-5 modal-enter my-auto max-h-[90vh] overflow-y-auto">
+            <div class="space-y-1">
+                <h2 class="text-3xl font-black bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent tracking-tight">+1 -1 Dünyası</h2>
+                <p class="text-[11px] text-slate-400 font-mono">Sayı Algoritmaları ve Mantık Serüveni</p>
+            </div>
+            <div class="space-y-3 text-left font-mono text-xs text-slate-200">
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex gap-3 items-start">
+                    <i class="fa-solid fa-bullseye text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                    <div><span class="block font-bold text-white text-xs mb-0.5">Temel Amaç</span>Rakamları tekrarsız gizli sayıyı en az hamlede bulmak.</div>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex gap-3 items-start">
+                    <i class="fa-solid fa-calculator text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                    <div><span class="block font-bold text-white text-xs mb-0.5">Mantık Skoru (+ / -)</span><span class="text-emerald-400 font-bold">+1 :</span> Doğru rakam, tam doğru basamakta.<br><span class="text-red-400 font-bold">-1 :</span> Rakam sayıda var ama basamağı yanlış.</div>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex gap-3 items-start">
+                    <i class="fa-solid fa-fingerprint text-sky-400 text-sm mt-0.5 shrink-0"></i>
+                    <div><span class="block font-bold text-white text-xs mb-0.5">Klavye Not Defteri</span>Klavyedeki rakamlara <span class="text-amber-400 font-bold">uzun basarak</span> onları elenmiş (Kırmızı) veya kesin var (Yeşil) olarak işaretleyebilirsin.</div>
+                </div>
+                <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800 flex gap-3 items-start">
+                    <i class="fa-solid fa-wand-magic-sparkles text-violet-400 text-sm mt-0.5 shrink-0"></i>
+                    <div><span class="block font-bold text-white text-xs mb-0.5">Joker Altyapısı</span>Seviye atladıkça biriken envanterindeki jokerlerle rakam eleyebilir veya tam isabet basamak açabilirsin.</div>
+                </div>
+            </div>
+            <button id="btn-onboarding-start" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer">Maceraya Başla <i class="fa-solid fa-play ml-1 text-xs"></i></button>
+        </div>
+    </div>
+
+    <div id="start-menu-modal"
+         class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-40 transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4">
+            <div class="flex justify-between items-start">
+                <button id="btn-open-leaderboard" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 border border-slate-700/50 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-trophy mr-1 animate-pulse"></i> Sıralama
+                </button>
                 <div>
-                    <div id="header-username" class="font-bold text-sm tracking-wide truncate max-w-[120px]">Yükleniyor...</div>
-                    <div id="header-rank" class="text-[11px] font-semibold text-indigo-400 tracking-wider uppercase">Çömez</div>
+                    <h2 class="text-3xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-1">+1 -1</h2>
+                    <p class="text-[10px] text-slate-400 font-mono tracking-wide" id="menu-user-id">@username</p>
                 </div>
-            </button>
-
-            <div class="flex items-center gap-2">
-                <button id="btn-open-leaderboard" class="w-9 h-9 app-card rounded-xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition active:scale-95 text-sm cursor-pointer" title="Sıralama">
-                    <i class="fa-solid fa-trophy text-amber-400"></i>
-                </button>
-                <button id="btn-toggle-theme" class="w-9 h-9 app-card rounded-xl flex items-center justify-center transition active:scale-95 text-sm cursor-pointer" title="Tema Değiştir">
-                    <i id="theme-icon" class="fa-solid fa-sun"></i>
-                </button>
-            </div>
-        </header>
-
-        <section class="grid grid-cols-3 gap-2 mt-2">
-            <div class="app-card rounded-xl p-2.5 text-center flex flex-col justify-center">
-                <span class="text-[10px] uppercase tracking-wider text-muted font-bold">Skor</span>
-                <span id="stat-score" class="text-lg font-black text-indigo-500">0</span>
-            </div>
-            <div class="app-card rounded-xl p-2.5 text-center flex flex-col justify-center">
-                <span class="text-[10px] uppercase tracking-wider text-muted font-bold">En Yüksek</span>
-                <span id="stat-high" class="text-lg font-black text-emerald-500">0</span>
-            </div>
-            <div class="app-card rounded-xl p-2.5 text-center flex flex-col justify-center">
-                <span class="text-[10px] uppercase tracking-wider text-muted font-bold">Seviye</span>
-                <span id="stat-level" class="text-lg font-black text-amber-500">1</span>
-            </div>
-        </section>
-
-        <main class="flex-1 flex flex-col justify-center items-center py-4">
-            <div class="w-full app-card rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col items-center justify-center min-h-[160px]">
-                <div id="operation-history" class="absolute top-3 left-4 right-4 flex items-center justify-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs text-muted font-mono opacity-50">
-                    <span class='italic opacity-40'>Operasyon bekleniyor...</span>
-                </div>
-
-                <div id="target-number" class="text-6xl font-black tracking-tight select-none transform transition duration-200">
-                    47
-                </div>
-
-                <div id="goal-target-indicator" class="mt-4 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[11px] font-bold text-indigo-400 tracking-wide uppercase">
-                    HEDEF: <span id="goal-number-val">36</span>
-                </div>
-            </div>
-        </main>
-
-        <section class="grid grid-cols-3 gap-2 mb-3">
-            <button id="btn-joker-ele" class="app-card rounded-xl p-2.5 flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-b-slate-600 active:border-b-0 cursor-pointer">
-                <div class="flex items-center gap-1">
-                    <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-xs"></i>
-                    <span class="text-[11px] font-bold">Eşitle</span>
-                </div>
-                <div class="mt-1 flex items-center gap-1 text-[10px] text-muted">
-                    <i class="fa-solid fa-ticket text-purple-400"></i>
-                    <span id="joker-ele-count" class="font-bold">1</span>
-                </div>
-            </button>
-
-            <button id="btn-joker-fisilda" class="app-card rounded-xl p-2.5 flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-b-slate-600 active:border-b-0 cursor-pointer">
-                <div class="flex items-center gap-1">
-                    <i class="fa-solid fa-comment-dots text-cyan-400 text-xs"></i>
-                    <span class="text-[11px] font-bold">Tüyo</span>
-                </div>
-                <div class="mt-1 flex items-center gap-1 text-[10px] text-muted">
-                    <i class="fa-solid fa-ticket text-cyan-400"></i>
-                    <span id="joker-fisilda-count" class="font-bold">1</span>
-                </div>
-            </button>
-
-            <button id="btn-joker-basamak" class="app-card rounded-xl p-2.5 flex flex-col items-center justify-center transition active:scale-95 border-b-4 border-b-slate-600 active:border-b-0 cursor-pointer">
-                <div class="flex items-center gap-1">
-                    <i class="fa-solid fa-layer-group text-amber-400 text-xs"></i>
-                    <span class="text-[11px] font-bold">Sıçra</span>
-                </div>
-                <div class="mt-1 flex items-center gap-1 text-[10px] text-muted">
-                    <i class="fa-solid fa-ticket text-amber-400"></i>
-                    <span id="joker-basamak-count" class="font-bold">1</span>
-                </div>
-            </button>
-        </section>
-
-        <footer class="app-kb border-t app-border p-3 -mx-4 pb-6 rounded-t-3xl">
-            <div class="w-full grid-kb">
-                <button data-key="+1" class="col-span-2 bg-slate-800 text-emerald-400 font-extrabold text-sm py-3.5 rounded-xl shadow border-b-2 border-slate-900 active:border-b-0 active:scale-95 transition transform cursor-pointer">+1</button>
-                <button data-key="-1" class="col-span-2 bg-slate-800 text-rose-400 font-extrabold text-sm py-3.5 rounded-xl shadow border-b-2 border-slate-900 active:border-b-0 active:scale-95 transition transform cursor-pointer">-1</button>
-                <button data-key="x2" class="col-span-2 bg-slate-800 text-indigo-400 font-extrabold text-sm py-3.5 rounded-xl shadow border-b-2 border-slate-900 active:border-b-0 active:scale-95 transition transform cursor-pointer">x2</button>
-                <button data-key="/2" class="col-span-2 bg-slate-800 text-indigo-400 font-extrabold text-sm py-3.5 rounded-xl shadow border-b-2 border-slate-900 active:border-b-0 active:scale-95 transition transform cursor-pointer">/2</button>
-                <button id="btn-undo" class="col-span-2 bg-slate-700 text-amber-400 font-extrabold text-sm py-3.5 rounded-xl shadow border-b-2 border-slate-800 active:border-b-0 active:scale-95 transition transform flex items-center justify-center cursor-pointer">
-                    <i class="fa-solid fa-rotate-left"></i>
-                </button>
-
-                <button id="btn-submit-action" class="col-span-10 btn-accent font-black text-sm py-4 rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition mt-1 uppercase tracking-wider cursor-pointer">
-                    BÖLÜMÜ TAMAMLA (HEDEFE ULAŞTIN!)
-                </button>
-            </div>
-        </footer>
-    </div>
-
-    <div id="leaderboard-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden flex items-center justify-center p-4">
-        <div id="leaderboard-inner" class="w-full max-w-sm app-card rounded-3xl flex flex-col max-h-[80vh] shadow-2xl transform transition-all overflow-hidden scale-95 opacity-0 duration-300 bg-slate-900">
-            <div class="p-4 border-b app-border flex items-center justify-between bg-indigo-600 text-white">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-ranking-star"></i>
-                    <h3 class="font-bold text-sm tracking-wide">Küresel Dehalar</h3>
-                </div>
-                <button id="btn-close-leaderboard" class="w-7 h-7 bg-white/10 hover:bg-white/20 active:scale-90 rounded-full flex items-center justify-center text-xs transition cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button id="btn-logout" class="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 border border-slate-800 hover:text-red-400 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-power-off"></i>
                 </button>
             </div>
 
-            <div id="leaderboard-list" class="flex-1 overflow-y-auto p-4 space-y-2.5 no-scrollbar bg-slate-950/20 text-xs font-mono">
+            <div id="btn-open-profile-menu" class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/60 text-xs flex flex-col items-center gap-2 text-white font-mono cursor-pointer active:scale-98 transition-all">
+                <div class="flex items-center gap-3 bg-slate-900/40 p-2 rounded-xl w-full justify-center">
+                    <div class="w-10 h-10 rounded-full border border-amber-500/30 overflow-hidden bg-slate-950 flex items-center justify-center relative">
+                        <span id="menu-avatar-emoji" class="text-xl">👤</span>
+                        <img  id="menu-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
+                    </div>
+                    <div class="text-left">
+                        <span id="menu-rank-name" class="font-black text-amber-400 text-sm">Çömez</span>
+                    </div>
                 </div>
+                <div class="flex justify-around w-full text-[10px]">
+                    <div>🏆 Lvl: <span id="menu-level-text"  class="text-amber-400 font-bold">1</span></div>
+                    <div>💰 Puan: <span id="menu-score-text" class="text-emerald-400 font-bold">0</span></div>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <span class="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider px-1">Tek Oyunculu</span>
+                <button id="btn-mode-basic" class="w-full text-left bg-slate-800/40 hover:bg-slate-800/70 p-3 rounded-xl border border-slate-800 flex justify-between items-center transition-all cursor-pointer text-white">
+                    <div><span class="block text-emerald-400 font-bold text-xs">Basic Mod</span><span class="text-[9px] text-slate-400">3 Basamak (1-6), Süresiz</span></div>
+                    <i class="fa-solid fa-seedling text-emerald-400 text-sm"></i>
+                </button>
+                <button id="btn-mode-medium" class="w-full text-left bg-slate-800/40 hover:bg-slate-800/70 p-3 rounded-xl border border-slate-800 flex justify-between items-center transition-all cursor-pointer text-white">
+                    <div><span class="block text-amber-400 font-bold text-xs">Medium Mod</span><span class="text-[9px] text-slate-400">4 Basamak (1-9), Süresiz</span></div>
+                    <i class="fa-solid fa-chess-knight text-amber-400 text-sm"></i>
+                </button>
+                <button id="btn-mode-pro" class="w-full text-left bg-slate-800/40 hover:bg-slate-800/70 p-3 rounded-xl border border-slate-800 flex justify-between items-center transition-all cursor-pointer text-white">
+                    <div><span class="block text-rose-500 font-bold text-xs">Pro Mod (Dinamik Zorluk)</span><span id="pro-desc-text" class="text-[9px] text-rose-300">-</span></div>
+                    <i class="fa-solid fa-fire text-rose-500 text-sm"></i>
+                </button>
+                <div class="pt-2">
+                    <span class="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider px-1">Çevrimiçi Kapışma</span>
+                    <button id="btn-open-pvp-menu" class="w-full mt-1 text-left bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 p-3.5 rounded-xl flex justify-between items-center transition-all cursor-pointer text-white shadow-lg shadow-indigo-950">
+                        <div><span class="block font-black text-sm text-white">Online Düello (PvP)</span><span class="text-[9px] text-indigo-200">Canlı rakiplerle zamana karşı düello</span></div>
+                        <i class="fa-solid fa-hand-fist text-white text-base animate-bounce"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="player-card-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden flex items-center justify-center p-4">
-        <div id="player-card-inner" class="w-full max-w-sm app-card rounded-3xl flex flex-col overflow-hidden shadow-2xl bg-slate-900 relative">
-            <div class="h-20 bg-gradient-to-r from-indigo-600 to-purple-600 relative">
-                <button id="btn-close-profile" class="absolute top-3 right-3 w-7 h-7 bg-black/20 hover:bg-black/30 text-white rounded-full flex items-center justify-center text-xs backdrop-blur-sm active:scale-90 transition cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+    <div id="leaderboard-modal" class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl w-full max-w-sm h-[85vh] flex flex-col justify-between shadow-2xl modal-enter">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 shrink-0">
+                <span class="text-sm font-black font-mono text-amber-400"><i class="fa-solid fa-crown mr-1"></i> Global Dehalar Listesi</span>
+                <button id="btn-close-leaderboard" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <div id="leaderboard-list-container" class="flex-1 my-3 overflow-y-auto space-y-2 pr-0.5 text-xs font-mono text-white no-scrollbar">
+                </div>
+            <p class="text-[9px] text-center text-slate-500 font-mono shrink-0">Sıralama anlık olarak puanlara göre güncellenir.</p>
+        </div>
+    </div>
 
-            <div class="px-5 pb-6 pt-1 flex flex-col items-center relative text-center">
-                <img id="profile-card-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" class="w-20 h-20 rounded-2xl bg-slate-800 border-4 app-border -mt-10 shadow-md object-cover" alt="Profile Avatar">
+    <div id="pvp-setup-modal" class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5 modal-enter">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-xs font-mono text-violet-400 font-bold"><i class="fa-solid fa-globe mr-1"></i> PvP Lobi Sunucusu</span>
+                <button id="btn-close-pvp-menu" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="pvp-initial-actions" class="space-y-4">
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-left space-y-1.5">
+                    <span class="text-[10px] text-slate-400 font-mono font-bold uppercase block">Zaman Denetimi</span>
+                    <div class="flex gap-2">
+                        <button id="mode-timeless-btn" class="flex-1 bg-violet-600 text-white font-bold py-1.5 rounded-lg text-xs transition-all cursor-pointer">Süresiz</button>
+                        <button id="mode-timed-btn" class="flex-1 bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-xs transition-all cursor-pointer">Süreli (75s)</button>
+                    </div>
+                </div>
+                <button id="btn-create-room" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-black py-3 rounded-xl transition-all cursor-pointer shadow-md">Oda Kur (Yeni Maç Başlat)</button>
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-xs font-mono">VEYA</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+                <div class="space-y-2">
+                    <input type="number" id="pvp-code-input" placeholder="4 Haneli Oda Kodu Girin" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-white text-lg focus:outline-none focus:border-violet-500" pattern="\d*">
+                    <button id="btn-join-room" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all cursor-pointer">Odaya Katıl</button>
+                </div>
+            </div>
+            <div id="pvp-waiting-screen" class="u-hidden space-y-4 py-4">
+                <div id="displayed-room-code" class="text-4xl font-black text-amber-400 tracking-widest font-mono p-4 bg-slate-950 rounded-2xl border border-slate-800">0000</div>
+                <p class="text-xs text-slate-300 font-medium">Bu kodu rakibinle paylaş. Giriş yapması bekleniyor...</p>
+                <div class="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+            <div id="pvp-secret-select-screen" class="u-hidden space-y-4">
+                <div class="text-sm font-bold text-white">Rakibinin Tahmin Etmesi İçin <span class="text-amber-400">4 Haneli Benzersiz</span> Gizli Sayını Belirle:</div>
+                <input type="number" id="pvp-my-secret-input" placeholder="Örn: 4736" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-xl font-black text-amber-400 tracking-widest focus:outline-none" pattern="\d*">
+                <button id="btn-submit-secret" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition-all cursor-pointer">Gizli Sayıyı Onayla &amp; Başla</button>
+                <p class="text-[10px] text-slate-500">Rakamlar tekrarsız olmalı ve 0 içermemelidir (1-9 arası).</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="h-12 flex justify-between items-center shrink-0 gap-1">
+        <div class="flex gap-1.5 items-center">
+            <button id="btn-quit-game" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-sm" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-arrow-left text-[9px]"></i> Menü
+            </button>
+            <button id="btn-toggle-theme" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center shadow-sm" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <i id="theme-btn-icon" class="fa-solid fa-sun text-amber-400"></i>
+            </button>
+            <div id="btn-open-profile-header" class="px-2 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 max-w-[130px] truncate cursor-pointer active:scale-95 transition-all" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+                <div class="w-6 h-6 rounded-full border border-slate-700/50 flex items-center justify-center overflow-hidden bg-slate-950/40 shrink-0 relative">
+                    <span id="top-avatar-emoji" class="text-xs">👤</span>
+                    <img  id="top-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
+                </div>
+                <span id="top-rank-name" class="truncate">Çömez</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-1 font-mono text-[10px]">
+            <div id="badge-level" class="px-1.5 py-1 rounded-lg font-bold" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">LVL 1</div>
+            <div id="pvp-turn-badge" class="u-hidden px-2 py-1 rounded-lg font-black bg-violet-600 text-white animate-pulse">SIRA SİZDE</div>
+            <div id="normal-score-badge" class="px-1.5 py-1 rounded-lg font-bold text-emerald-500" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">💰 <span id="top-score-text">0</span></div>
+            <div id="timer-box" class="u-hidden px-1.5 py-1 rounded-lg items-center gap-1 font-bold text-rose-500" style="background-color: var(--bg-card); border: 1px solid var(--border-color);"><i class="fa-solid fa-stopwatch text-rose-500"></i><span id="timer-text">60s</span></div>
+            <div class="px-1.5 py-1 rounded-lg" style="background-color: var(--bg-card); border: 1px solid var(--border-color);"><span id="move-text-container"><span id="move-text">Hamle: 0</span></span></div>
+        </div>
+    </header>
+
+    <div id="joker-bar" class="p-1.5 rounded-2xl flex justify-between items-center shrink-0 gap-1.5 text-[11px]" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+        <button id="btn-joker-ele" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+            <span class="block font-bold">🔍 Ele <span id="stok-ele" class="text-[9px] text-slate-400 font-mono">(0)</span></span><span class="font-mono text-red-500 font-bold">100 P</span>
+        </button>
+        <button id="btn-joker-fisilda" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+            <span class="block font-bold">💬 Bul <span id="stok-fisilda" class="text-[9px] text-slate-400 font-mono">(0)</span></span><span class="font-mono text-amber-500 font-bold">200 P</span>
+        </button>
+        <button id="btn-joker-basamak" class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+            <span class="block font-bold">🎯 Aç <span id="stok-basamak" class="text-[9px] text-slate-400 font-mono">(0)</span></span><span class="font-mono text-emerald-500 font-bold">500 P</span>
+        </button>
+    </div>
+
+    <div id="pvp-filter-bar" class="u-hidden grid grid-cols-3 gap-1 p-1 rounded-xl text-[10px] font-bold font-mono shrink-0 shadow-inner" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
+        <button id="filter-all-btn" class="py-1 rounded-lg text-center bg-violet-600 text-white transition-all cursor-pointer">HEPSİ</button>
+        <button id="filter-me-btn"  class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">SİZ</button>
+        <button id="filter-opp-btn" class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">RAKİP</button>
+    </div>
+
+    <main id="history-container" class="flex-1 my-2 overflow-y-auto space-y-2.5 pr-0.5 min-h-0"></main>
+
+    <footer class="shrink-0 space-y-3 pb-2 pt-2 border-t" style="background-color: var(--bg-main); border-color: var(--border-color);">
+        <div id="cells-wrapper" class="flex justify-center gap-3"></div>
+        <p id="tactic-info-text" class="text-[10px] text-center font-medium" style="color: var(--text-muted);">💡 Taktik: Sayılara <span class="text-amber-500 font-bold">basılı tutarak</span> Kırmızı / Yeşil yapabilirsin.</p>
+        <div id="keyboard-container" class="space-y-2"></div>
+    </footer>
+
+    <div id="game-over-modal" class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-40">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-4 modal-enter">
+            <div id="modal-icon-container" class="w-14 h-14 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-2xl text-emerald-400"><i id="modal-icon-main" class="fa-solid fa-trophy"></i></div>
+            <div><h2 id="modal-title" class="text-2xl font-black text-emerald-400">Başarılı!</h2><p id="modal-subtitle" class="text-xs text-slate-400 mt-1">-</p></div>
+            <div class="grid grid-cols-2 gap-3 font-mono text-xs text-white">
+                <div class="bg-slate-800/60 p-2.5 rounded-2xl border border-slate-800"><span class="block text-lg font-black text-amber-400 capitalize" id="modal-diff-text">-</span><span class="text-[9px] text-slate-500 uppercase font-bold">Zorluk</span></div>
+                <div class="bg-slate-800/60 p-2.5 rounded-2xl border border-slate-800"><span class="block text-lg font-black text-orange-400" id="modal-moves">0</span><span class="text-[9px] text-slate-500 uppercase font-bold">Hamle</span></div>
+            </div>
+            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800/80 space-y-2 font-mono text-xs text-left text-white">
+                <div class="flex justify-between"><span class="text-slate-400">Mod Detayı:</span><span class="font-bold text-white uppercase" id="modal-diff-spec">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Geçen Toplam Süre:</span><span class="font-bold text-sky-400" id="modal-total-time-spent">0s</span></div>
+                <div id="modal-puan-detay" class="space-y-1 pt-2 border-t border-slate-800">
+                    <div class="flex justify-between text-amber-400"><span>🎯 Tahmin Puanı:</span><span id="puan-tahmin">+0</span></div>
+                    <div class="flex justify-between text-sky-400"><span>⏱️ Zaman Puanı:</span><span id="puan-zaman">+0</span></div>
+                    <div class="flex justify-between text-emerald-400 text-xs font-black pt-1 border-t border-dashed border-slate-700"><span>🎉 Toplam Puan:</span><span id="puan-toplam">+0</span></div>
+                </div>
+            </div>
+            <button id="btn-next-level" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3 rounded-xl text-base shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer">Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-xs"></i></button>
+        </div>
+    </div>
+
+    <div id="rank-celebration-modal" class="u-hidden absolute inset-0 bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-4 z-40 modal-enter">
+        <div class="w-full max-w-sm text-center space-y-5">
+            <div class="text-amber-400 text-xs font-mono tracking-widest uppercase font-bold animate-pulse">Yeni Deha Unvanı Kazanıldı!</div>
+            <div class="w-34 h-34 mx-auto rounded-full border-4 border-amber-500/80 overflow-hidden bg-slate-900 shadow-2xl shadow-amber-500/10">
+                <span id="celeb-avatar-emoji" class="text-6xl flex h-full items-center justify-center">👤</span><img  id="celeb-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="rank avatar">
+            </div>
+            <div class="space-y-1"><h3 id="celeb-rank-name" class="text-3xl font-black text-amber-400 tracking-tight">-</h3><p class="text-xs text-slate-400 font-mono">Unvan Seviyesi Aktifleşti</p></div>
+            <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2.5 rounded-2xl text-xs font-mono font-bold max-w-xs mx-auto space-y-1">
+                <div>🎁 Seviye Ödülü: <span class="text-white">+500 Puan!</span></div>
+                <div class="text-[10px] text-slate-400">Tüm jokerlerden +1 adet envanterine eklendi!</div>
+            </div>
+            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 text-slate-300 italic text-xs font-medium leading-relaxed max-w-xs mx-auto">" <span id="celeb-quote">Söz</span> "</div>
+            <button id="btn-close-celebration" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all active:scale-95 cursor-pointer shadow-md">Maceraya Devam Et <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></button>
+        </div>
+    </div>
+
+    <div id="player-card-modal" class="u-hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-40">
+        <div id="player-card-inner" class="bg-slate-900 border-2 border-slate-800 p-6 rounded-3xl w-full max-w-xs text-center shadow-2xl space-y-4 modal-enter">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-xs font-mono text-slate-400">Kullanıcı Sicili</span><button id="btn-close-profile" class="text-slate-500 hover:text-slate-300 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="w-18 h-18 mx-auto rounded-full border-2 border-amber-500/40 overflow-hidden bg-slate-950 flex items-center justify-center">
+                <span id="card-avatar-emoji" class="text-2xl">👤</span><img  id="card-avatar-img"   src="" class="u-hidden w-full h-full object-cover" alt="avatar">
+            </div>
+            <div class="space-y-3 font-mono text-left">
+                <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80 text-center"><span class="block text-[9px] text-slate-500 uppercase font-bold tracking-wider">Mevcut Kademe</span><span id="card-rank-name" class="text-sm font-black text-amber-400">-</span></div>
+                <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                    <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80"><span class="block text-[9px] text-slate-500 font-bold">SEVİYE</span><span id="card-level-val" class="text-base font-black text-white">1</span></div>
+                    <div class="bg-slate-950/40 p-2 rounded-xl border border-slate-800/80"><span class="block text-[9px] text-slate-500 font-bold">CÜZDAN</span><span id="card-score-val" class="text-base font-black text-emerald-400">0</span></div>
+                </div>
+                <div class="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 space-y-1 text-[10px]">
+                    <span class="block text-[9px] text-slate-500 font-bold uppercase mb-1">Hediye Joker Envanteri</span>
+                    <div class="flex justify-between"><span>🔍 Ele Jokeri:</span><span id="card-ele-val" class="font-bold text-white">0 Adet</span></div>
+                    <div class="flex justify-between"><span>💬 Bul Jokeri:</span><span id="card-fisilda-val" class="font-bold text-white">0 Adet</span></div>
+                    <div class="flex justify-between"><span>🎯 Aç Jokeri:</span><span id="card-basamak-val" class="font-bold text-white">0 Adet</span></div>
+                </div>
+            </div>
+            <p class="text-[9px] text-slate-500 italic">Tetah Mara Dev Team 2026</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ════════════════════════════════════════════════
+   §1 · CONFIG & CONSTANTS
+════════════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+    apiKey:            "AIzaSyDYRY3ZlQEjZUsZgJQ7487xmsFQWY_HI",
+    authDomain:        "pvp-fafdd.firebaseapp.com",
+    databaseURL:       "https://pvp-fafdd-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "pvp-fafdd",
+    storageBucket:     "pvp-fafdd.appspot.com",
+    messagingSenderId: "753201215044",
+    appId:             "1:753201215044:web:b82ebfc0b6c16d16142e11"
+};
+
+const MAX_LEVELS   = 3024;
+const LS_KEY       = "plusMinus_playerStats";
+const PVP_TIMEOUT  = 75;
+
+function getRankConfig(level) {
+    if      (level >= 21) return { name: "Tetah Mara", isImg: true,  file: "tetah_mara.jpg",  quote: "In for a penny, in for a pound.",                                                       maxMoves: 11, duration: 60  };
+    else if (level >= 13) return { name: "Öklid",      isImg: true,  file: "OKLID.jpg",        quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.",                  maxMoves: 11, duration: 75  };
+    else if (level >= 8)  return { name: "Da Vinci",   isImg: true,  file: "davinci.jpg",      quote: "Kurguladığın her şey, doğanın şifrelerinde zaten gizlidir.",                         maxMoves: 19, duration: 75  };
+    else if (level >= 5)  return { name: "Einstein",   isImg: true,  file: "EINSTEIN.jpg",     quote: "Hayal gücü bilgiden daha önemlidir, çünkü bilgi sınırlıdır.",                        maxMoves: 19, duration: 90  };
+    else if (level >= 3)  return { name: "Marie Curie",isImg: true,  file: "mariecurie.jpg",   quote: "Hayatta hiçbir şeyden korkmayın, sadece onları anlamaya çalışın.",                   maxMoves: 32, duration: 90  };
+    else if (level >= 2)  return { name: "Fibonacci",  isImg: true,  file: "fibonacci.jpg",    quote: "Sayılar evrenin kalbidir ve her adım bir öncekinin mirasıdır.",                      maxMoves: 32, duration: 120 };
+    else                  return { name: "Çömez",       isImg: false, emoji: "👤",              quote: "Sayılar alemine hoş geldin. Yolun uzun, sabırlı ol!",                               maxMoves: 53, duration: 200 };
+}
+
+/* ════════════════════════════════════════════════
+   §2 · STATE MANAGEMENT
+════════════════════════════════════════════════ */
+let playerStats = {
+    level:            1,
+    score:            0,
+    theme:            "dark",
+    uid:              "",
+    username:         "",
+    googlePhoto:      "",
+    jokers:           { ele: 1, fisilda: 1, basamak: 1 },
+    hasSeenOnboarding: false
+};
+
+const gameState = {
+    difficulty:          "medium",
+    maxDigits:           4,
+    allowedPool:         [],
+    currentGuess:        [],
+    secretNumber:        "",
+    movesCount:          0,
+    timeLeft:            60,
+    maxProMoves:         10,
+    totalSecondsSpent:   0,
+    isActive:            false,
+    lastResultWin:       false,
+    isPvP:               false,
+    pvpTimeMode:         "timeless",
+    roomCode:            null,
+    myRole:              null,
+    currentFilter:       "all",
+    localGuessesHistory: []
+};
+
+const firebaseRefs = {
+    db:          null,
+    auth:        null,
+    roomRef:     null,
+    detachRoom() {
+        if (this.roomRef) {
+            this.roomRef.off();
+            this.roomRef = null;
+        }
+    }
+};
+
+const timers = {
+    game:  null,
+    clear() {
+        if (this.game) { clearInterval(this.game); this.game = null; }
+    }
+};
+
+function saveStats() {
+    try {
+        localStorage.setItem(LS_KEY, JSON.stringify(playerStats));
+        if (firebaseRefs.db && playerStats.uid && playerStats.username) {
+            firebaseRefs.db.ref("kullanicilar/" + playerStats.uid).set(playerStats);
+        }
+    } catch (err) {
+        console.warn("[Storage] Bulut/Yerel kayıt başarısız:", err);
+    }
+}
+
+/* ════════════════════════════════════════════════
+   §3 · FIREBASE SERVICE (Network Layer)
+════════════════════════════════════════════════ */
+function initFirebase() {
+    try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        firebaseRefs.db = firebase.database();
+        firebaseRefs.auth = firebase.auth();
+        
+        firebaseRefs.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                playerStats.uid = user.uid;
+                playerStats.googlePhoto = user.photoURL || "";
                 
-                <h3 id="profile-card-username" class="text-xl font-black mt-2 tracking-tight">@deha</h3>
-                <span id="profile-card-rank-badge" class="px-2.5 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold rounded-full text-[10px] tracking-wider uppercase mt-1">Acemi Kademe</span>
+                const snapshot = await firebaseRefs.db.ref("kullanicilar/" + user.uid).once("value");
+                const cloudData = snapshot.val();
+                
+                if (cloudData && cloudData.username) {
+                    playerStats = cloudData;
+                    UI.modal.hide("auth-modal");
+                    if (!playerStats.hasSeenOnboarding) {
+                        UI.modal.show("onboarding-modal");
+                    } else {
+                        UI.showStartMenu();
+                    }
+                } else {
+                    UI.modal.hide("auth-modal");
+                    UI.modal.show("username-modal");
+                }
+            } else {
+                UI.modal.show("auth-modal");
+            }
+        });
+    } catch (err) {
+        console.error("[Firebase] Başlatma hatası:", err);
+        UI.showError("Firebase bağlantısı kurulamadı.");
+    }
+}
 
-                <div class="w-full grid grid-cols-2 gap-2.5 mt-5 font-mono text-left">
-                    <div class="p-3 bg-slate-900/40 border app-border rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-muted uppercase tracking-wider">Kazanılan Puan</div>
-                        <div id="profile-card-score" class="text-base font-black text-indigo-500 mt-0.5">0</div>
-                    </div>
-                    <div class="p-3 bg-slate-900/40 border app-border rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-muted uppercase tracking-wider">Maksimum Rekor</div>
-                        <div id="profile-card-high" class="text-base font-black text-emerald-500 mt-0.5">0</div>
-                    </div>
-                    <div class="p-3 bg-slate-900/40 border app-border rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-muted uppercase tracking-wider">Erişilen Seviye</div>
-                        <div id="profile-card-level" class="text-base font-black text-amber-400 mt-0.5">1</div>
-                    </div>
-                    <div class="p-3 bg-slate-900/40 border app-border rounded-xl text-center">
-                        <div class="text-[10px] font-bold text-muted uppercase tracking-wider">Joker Hakları</div>
-                        <div id="profile-card-jokers" class="text-base font-black text-purple-500 mt-0.5">3</div>
-                    </div>
-                </div>
+async function handleGoogleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        await firebaseRefs.auth.signInWithPopup(provider);
+    } catch (err) {
+        console.error("[Auth] Giriş Hatası:", err);
+        UI.showError("Google giriş işlemi başlatılamadı.");
+    }
+}
 
-                <button id="btn-logout" class="mt-5 text-xs text-rose-400 hover:text-rose-500 font-bold tracking-wide flex items-center gap-1.5 px-4 py-2 border border-rose-500/10 hover:border-rose-500/20 rounded-xl bg-rose-500/5 active:scale-95 transition cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket"></i> Hesaptan Çıkış Yap
-                </button>
-            </div>
-        </div>
-    </div>
+async function handleLogout() {
+    try {
+        await firebaseRefs.auth.signOut();
+        localStorage.removeItem(LS_KEY);
+        window.location.reload();
+    } catch (err) {
+        UI.showError("Çıkış yapılamadı.");
+    }
+}
 
-    <div id="rank-celebration-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex flex-col items-center justify-center p-6 text-center">
-        <div class="animate-bounce mb-4 text-5xl">🏆</div>
-        <h2 class="text-3xl font-black text-amber-400 tracking-tight">KADEME ATLADIN!</h2>
-        <p class="text-sm text-slate-300 max-w-xs mt-2">Zekanı kanıtladın ve rütbeni başarıyla yukarı taşıdın.</p>
-        <div id="celebration-rank-box" class="my-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xl tracking-widest shadow-xl shadow-indigo-600/30 uppercase">
-            YÜKSEK DEHA
-        </div>
-        <button id="btn-close-celebration" class="btn-accent px-8 py-3 rounded-xl font-bold text-sm tracking-wide shadow-md active:scale-95 transition cursor-pointer">Mücadeleye Devam Et</button>
-    </div>
+async function checkAndSaveUsername() {
+    const input = UI.el("username-input").value.trim().toLowerCase();
+    const regex = /^[a-z0-9_]{3,15}$/;
+    
+    if (!regex.test(input)) {
+        UI.showError("Geçersiz format! Sadece küçük harf, rakam ve alt çizgi (3-15 karakter).");
+        return;
+    }
+    
+    try {
+        const checkRef = firebaseRefs.db.ref("usernames/" + input);
+        const snapshot = await checkRef.once("value");
+        if (snapshot.exists()) {
+            UI.showError("Bu kullanıcı adı başkası tarafından kapılmış!");
+            return;
+        }
+        
+        await checkRef.set(playerStats.uid);
+        playerStats.username = input;
+        saveStats();
+        
+        UI.modal.hide("username-modal");
+        if (!playerStats.hasSeenOnboarding) {
+            UI.modal.show("onboarding-modal");
+        } else {
+            UI.showStartMenu();
+        }
+    } catch (err) {
+        UI.showError("Kullanıcı adı kaydedilemedi.");
+    }
+}
 
-    <script>
-        /* ════════════════════════════════════════════════
-           GLOBAL APPLICATION STATE
-        ════════════════════════════════════════════════ */
-        const AppState = {
-            currentUser: null,
-            userData: {
-                username: "",
-                score: 0,
-                highScore: 0,
-                level: 1,
-                jokers: { ele: 1, fisilda: 1, basamak: 1 }
-            },
-            gameState: {
-                startNumber: 0,
-                currentNumber: 0,
-                targetNumber: 0,
-                history: []
-            },
-            theme: "dark"
-        };
-
-        let database;
-        let auth;
-
-        /* ════════════════════════════════════════════════
-           FIREBASE SERVICE LAYER
-        ════════════════════════════════════════════════ */
-        function initFirebase() {
-            const firebaseConfig = {
-                apiKey:            "AIzaSyDYRY3ZlQEjZUsZgJQ7487xmsFQWY_HI",
-                authDomain:        "pvp-fafdd.firebaseapp.com",
-                databaseURL:       "https://pvp-fafdd-default-rtdb.europe-west1.firebasedatabase.app",
-                projectId:         "pvp-fafdd",
-                storageBucket:     "pvp-fafdd.firebasestorage.app",
-                messagingSenderId: "753201215044",
-                appId:             "1:753201215044:web:b82ebfc0b6c16d16142e11"
-            };
+async function fbLoadLeaderboard() {
+    try {
+        const snapshot = await firebaseRefs.db.ref("kullanicilar").orderByChild("score").limitToLast(30).once("value");
+        const listContainer = UI.el("leaderboard-list-container");
+        listContainer.innerHTML = "";
+        
+        let users = [];
+        snapshot.forEach((child) => { users.push(child.val()); });
+        users.reverse();
+        
+        users.forEach((u, index) => {
+            const row = document.createElement("div");
+            row.className = `flex items-center justify-between p-2.5 rounded-xl border ${
+                u.uid === playerStats.uid ? "bg-amber-500/10 border-amber-500/40" : "bg-slate-950/40 border-slate-800"
+            }`;
             
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            auth = firebase.auth();
+            let rankBadge = `<span class="w-5 text-slate-500 font-bold">${index + 1}.</span>`;
+            if (index === 0) rankBadge = `<span class="w-5 text-amber-400 font-black">🥇</span>`;
+            if (index === 1) rankBadge = `<span class="w-5 text-slate-300 font-black">🥈</span>`;
+            if (index === 2) rankBadge = `<span class="w-5 text-orange-400 font-black">🥉</span>`;
+            
+            const userPhoto = u.googlePhoto 
+                ? `<img src="${u.googlePhoto}" class="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-700">`
+                : `<span class="text-xs">👤</span>`;
+                
+            row.innerHTML = `
+                <div class="flex items-center gap-2 truncate">
+                    ${rankBadge}
+                    ${userPhoto}
+                    <span class="font-bold truncate ${u.uid === playerStats.uid ? "text-amber-400" : "text-slate-200"}">@${u.username || 'anonim'}</span>
+                    <span class="text-[9px] px-1 bg-slate-800 rounded text-slate-400">LVL ${u.level || 1}</span>
+                </div>
+                <div class="font-black text-emerald-400">${u.score || 0} P</div>
+            `;
+            listContainer.appendChild(row);
+        });
+        UI.modal.show("leaderboard-modal");
+    } catch (err) {
+        console.error("Skor tablosu yüklenemedi:", err);
+    }
+}
+
+async function fbCreateRoom() {
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    gameState.roomCode = code;
+    gameState.myRole   = "creator";
+
+    const ref = firebaseRefs.db.ref("odalar/" + code);
+    firebaseRefs.roomRef = ref;
+
+    try {
+        await ref.set({
+            creatorId:     playerStats.uid,
+            joinerId:      "",
+            status:        "waiting",
+            turn:          "creator",
+            creatorSecret: "",
+            joinerSecret:  "",
+            timeMode:      gameState.pvpTimeMode,
+            lastGuessData: "",
+            winner:        ""
+        });
+        UI.pvp.showWaiting(code);
+        fbBindRoomListener();
+    } catch (err) {
+        UI.showError("Oda oluşturulamadı.");
+    }
+}
+
+async function fbJoinRoom(code) {
+    if (!code || code.length !== 4) {
+        UI.showError("Lütfen 4 haneli oda kodunu girin.");
+        return;
+    }
+    const ref = firebaseRefs.db.ref("odalar/" + code);
+    firebaseRefs.roomRef = ref;
+
+    try {
+        const snapshot = await ref.once("value");
+        const data = snapshot.val();
+
+        if (!data) {
+            UI.showError("Oda bulunamadı! Kodu kontrol edin.");
+            return;
+        }
+        if (data.status !== "waiting" || data.joinerId !== "") {
+            UI.showError("Bu oda zaten dolu veya oyun başlamış.");
+            return;
         }
 
-        const DatabaseManager = {
-            checkUserNode: (user) => {
-                AppState.currentUser = user;
-                UI.el("header-username").innerText = "Yükleniyor...";
+        gameState.roomCode  = code;
+        gameState.myRole    = "joiner";
+        gameState.pvpTimeMode = data.timeMode || "timeless";
 
-                database.ref("kullanicilar/" + user.uid).once("value")
-                    .then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
-                            AppState.userData = {
-                                username: data.username || "",
-                                score: data.score || 0,
-                                highScore: data.highScore || 0,
-                                level: data.level || 1,
-                                jokers: data.jokers || { ele: 1, fisilda: 1, basamak: 1 }
-                            };
+        await ref.update({ joinerId: playerStats.uid });
+        UI.pvp.showSecretSelect();
+        fbBindRoomListener();
+    } catch (err) {
+        UI.showError("Odaya katılınamadı.");
+    }
+}
 
-                            if (!AppState.userData.username) {
-                                UI.hide("loading-screen");
-                                UI.show("auth-screen");
-                                UI.hide("auth-login-view");
-                                UI.show("auth-username-view");
-                            } else {
-                                DatabaseManager.finalizeLogin();
-                            }
-                        } else {
-                            AppState.userData = {
-                                username: "",
-                                score: 0,
-                                highScore: 0,
-                                level: 1,
-                                jokers: { ele: 1, fisilda: 1, basamak: 1 }
-                            };
-                            UI.hide("loading-screen");
-                            UI.show("auth-screen");
-                            UI.hide("auth-login-view");
-                            UI.show("auth-username-view");
-                        }
-                    })
-                    .catch((err) => {
-                        console.error("Düğüm kontrol hatası:", err);
-                        UI.hide("loading-screen");
-                    });
-            },
+async function fbSubmitSecret(secretNum) {
+    const update = gameState.myRole === "creator"
+        ? { creatorSecret: secretNum }
+        : { joinerSecret:  secretNum };
 
-            saveUsername: () => {
-                const input = UI.el("input-username").value.trim().toLowerCase();
-                const errorEl = UI.el("username-error-msg");
-                const regex = /^[a-z0-9_]{3,15}$/;
-                
-                if (!regex.test(input)) {
-                    errorEl.innerText = "Sadece küçük harf, rakam ve alt çizgi! (3-15 karakter)";
-                    errorEl.classList.remove("hidden");
+    try {
+        await firebaseRefs.roomRef.update(update);
+        UI.pvp.showSecretWaiting();
+
+        const snapshot = await firebaseRefs.roomRef.once("value");
+        const data = snapshot.val();
+        if (data.creatorSecret !== "" && data.joinerSecret !== "") {
+            await firebaseRefs.roomRef.update({ status: "playing" });
+        }
+    } catch (err) {
+        UI.showError("Gizli sayı kaydedilemedi.");
+    }
+}
+
+async function fbWriteGuess(guessStr, resultStr, isWin) {
+    const nextTurn = gameState.myRole === "creator" ? "joiner" : "creator";
+    const guessData = `${guessStr}:${resultStr}:${playerStats.uid}`;
+
+    try {
+        if (isWin) {
+            await firebaseRefs.roomRef.update({
+                lastGuessData: guessData,
+                status:        "ended",
+                winner:        gameState.myRole
+            });
+        } else {
+            await firebaseRefs.roomRef.update({
+                turn:          nextTurn,
+                lastGuessData: guessData
+            });
+        }
+    } catch (err) {
+        UI.showError("Hamle kaydedilemedi.");
+    }
+}
+
+function fbBindRoomListener() {
+    if (!firebaseRefs.roomRef) return;
+
+    firebaseRefs.roomRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        if (
+            data.status === "waiting"      &&
+            data.joinerId !== ""           &&
+            gameState.myRole === "creator" &&
+            data.creatorSecret === ""
+        ) {
+            UI.pvp.showSecretSelect();
+        }
+
+        if (data.status === "playing") {
+            if (!gameState.isActive || !gameState.isPvP) {
+                UI.modal.hide("pvp-setup-modal");
+                GameLogic.startPvP(data);
+            } else {
+                UI.pvp.handleTurnBadge(data.turn);
+                _processIncomingGuess(data);
+            }
+        }
+
+        if (data.status === "ended" && gameState.isActive) {
+            GameLogic.endPvP(data);
+        }
+    }, (err) => {
+        UI.showError("Bağlantı kesildi. Menüye dönülüyor...");
+        setTimeout(() => UI.showStartMenu(), 2000);
+    });
+}
+
+function _processIncomingGuess(data) {
+    if (!data.lastGuessData) return;
+
+    const parts = data.lastGuessData.split(":");
+    if (parts.length !== 3) return;
+
+    const [gGuess, gRes, gUid] = parts;
+    const uniqueId = `${gUid}_${gGuess}`;
+
+    if (gameState.localGuessesHistory.some(x => x.id === uniqueId)) return;
+
+    const entry = {
+        id:     uniqueId,
+        tahmin: gGuess,
+        sonuc:  gRes,
+        isMe:   gUid === playerStats.uid
+    };
+    gameState.localGuessesHistory.push(entry);
+    UI.renderFilteredHistory();
+
+    if (data.turn === gameState.myRole && gameState.pvpTimeMode === "timed") {
+        GameLogic.setupTimer();
+    }
+}
+
+async function fbQuitRoom() {
+    if (!firebaseRefs.roomRef) return;
+    const otherRole = gameState.myRole === "creator" ? "joiner" : "creator";
+    try {
+        await firebaseRefs.roomRef.update({ status: "ended", winner: otherRole });
+    } catch (_) {}
+    firebaseRefs.detachRoom();
+}
+
+/* ════════════════════════════════════════════════
+   §4 · GAME LOGIC CORE
+════════════════════════════════════════════════ */
+const GameLogic = {
+    startSinglePlayer(diff) {
+        gameState.isPvP       = false;
+        gameState.difficulty  = diff;
+
+        if (diff === "basic") {
+            gameState.maxDigits   = 3;
+            gameState.allowedPool = ["1","2","3","4","5","6"];
+        } else {
+            gameState.maxDigits   = 4;
+            gameState.allowedPool = ["1","2","3","4","5","6","7","8","9"];
+        }
+        this.initRound();
+    },
+
+    startPvP(data) {
+        gameState.isPvP        = true;
+        gameState.isActive     = true;
+        gameState.difficulty   = "PvP Düello";
+        gameState.maxDigits    = 4;
+        gameState.allowedPool  = ["1","2","3","4","5","6","7","8","9"];
+        gameState.currentGuess        = [];
+        gameState.movesCount          = 0;
+        gameState.totalSecondsSpent   = 0;
+        gameState.localGuessesHistory = [];
+        gameState.secretNumber = gameState.myRole === "creator"
+            ? data.joinerSecret
+            : data.creatorSecret;
+
+        UI.modal.hide("start-menu-modal");
+        UI.el("normal-score-badge").classList.add("u-hidden");
+        UI.el("pvp-filter-bar").classList.remove("u-hidden");
+        this.changeHistoryFilter("all");
+
+        UI.el("tactic-info-text").textContent = "⚔️ Online Düello Modu. Joker kullanımı serbesttir!";
+        UI.buildGameElements();
+        UI.updateMoveText();
+        this.setupTimer();
+        UI.renderFilteredHistory();
+    },
+
+    initRound() {
+        UI.updateMenuData();
+        UI.buildGameElements();
+
+        gameState.secretNumber      = this.generateSecret();
+        gameState.currentGuess      = [];
+        gameState.movesCount        = 0;
+        gameState.totalSecondsSpent = 0;
+        gameState.isActive          = true;
+        gameState.localGuessesHistory = [];
+
+        const cfg          = getRankConfig(playerStats.level);
+        gameState.maxProMoves = cfg.maxMoves;
+        gameState.timeLeft    = cfg.duration;
+
+        console.log("🔒 Gizli Sayı:", gameState.secretNumber);
+
+        UI.updateMoveText();
+        UI.el("history-container").innerHTML = `
+            <div id="empty-state" class="h-full flex flex-col items-center justify-center text-xs italic"
+                 style="color: var(--text-muted);">
+                <i class="fa-solid fa-flag text-2xl mb-2"></i>
+                Seviye ${playerStats.level} Başladı! Tahminini yap.
+            </div>`;
+        this.setupTimer();
+    },
+
+    generateSecret() {
+        const pool = [...gameState.allowedPool];
+        let result = "";
+        for (let i = 0; i < gameState.maxDigits; i++) {
+            const idx = Math.floor(Math.random() * pool.length);
+            result += pool[idx];
+            pool.splice(idx, 1);
+        }
+        return result;
+    },
+
+    calcScore(guess, secret) {
+        let plus = 0, minus = 0;
+        for (let i = 0; i < secret.length; i++) {
+            if      (guess[i] === secret[i]) plus++;
+            else if (secret.includes(guess[i])) minus++;
+        }
+        return { plus, minus };
+    },
+
+    submitGuess() {
+        if (!gameState.isActive || gameState.currentGuess.length !== gameState.maxDigits) {
+            UI.shakeCells();
+            return;
+        }
+
+        if (gameState.isPvP) {
+            firebaseRefs.roomRef.once("value", (snapshot) => {
+                const data = snapshot.val();
+                if (!data || data.status !== "playing") return;
+                if (data.turn !== gameState.myRole) {
+                    UI.showError("Şu an rakibinizin hamle yapması bekleniyor!");
                     return;
                 }
-
-                database.ref("usernames/" + input).once("value")
-                    .then((snapshot) => {
-                        if (snapshot.exists()) {
-                            errorEl.innerText = "Bu kullanıcı adı zaten alınmış!";
-                            errorEl.classList.remove("hidden");
-                        } else {
-                            database.ref("usernames/" + input).set(AppState.currentUser.uid);
-                            AppState.userData.username = input;
-                            DatabaseManager.saveUserData().then(() => {
-                                DatabaseManager.finalizeLogin();
-                            });
-                        }
-                    })
-                    .catch((err) => console.error(err));
-            },
-
-            saveUserData: () => {
-                if (!AppState.currentUser) return Promise.resolve();
-                return database.ref("kullanicilar/" + AppState.currentUser.uid).set(AppState.userData);
-            },
-
-            finalizeLogin: () => {
-                UI.el("header-username").innerText = `@${AppState.userData.username}`;
-                UI.el("header-rank").innerText = GameLogic.getRankName(AppState.userData.score);
-                UI.el("header-avatar").src = `https://api.dicebear.com/7.x/bottts/svg?seed=${AppState.userData.username}`;
-                
-                UI.renderStats();
-                GameLogic.generateLevel();
-
-                UI.hide("auth-screen");
-                UI.hide("loading-screen");
-            }
-        };
-
-        /* ════════════════════════════════════════════════
-           GAME MECHANICS ENGINE
-        ════════════════════════════════════════════════ */
-        const GameLogic = {
-            generateLevel: () => {
-                const lvl = AppState.userData.level;
-                let start, target;
-                
-                if (lvl === 1) {
-                    start = 47; target = 36;
-                } else {
-                    const range = 15 + (lvl * 4);
-                    start = Math.floor(Math.random() * range) + 10;
-                    target = Math.floor(Math.random() * range) + 10;
-                    if (start === target) target += 5;
-                }
-
-                AppState.gameState.startNumber = start;
-                AppState.gameState.currentNumber = start;
-                AppState.gameState.targetNumber = target;
-                AppState.gameState.history = [start];
-
-                UI.renderGame();
-            },
-
-            applyMathKey: (op) => {
-                let num = AppState.gameState.currentNumber;
-                if (op === "+1") num += 1;
-                else if (op === "-1") num -= 1;
-                else if (op === "x2") num *= 2;
-                else if (op === "/2") {
-                    if (num % 2 !== 0) return;
-                    num /= 2;
-                }
-
-                AppState.gameState.currentNumber = num;
-                AppState.gameState.history.push(op);
-                UI.renderGame();
-            },
-
-            undo: () => {
-                if (AppState.gameState.history.length <= 1) return;
-                AppState.gameState.history.pop();
-                
-                let reCalc = AppState.gameState.startNumber;
-                for (let i = 1; i < AppState.gameState.history.length; i++) {
-                    let op = AppState.gameState.history[i];
-                    if (op === "+1") reCalc += 1;
-                    else if (op === "-1") reCalc -= 1;
-                    else if (op === "x2") reCalc *= 2;
-                    else if (op === "/2") reCalc /= 2;
-                }
-
-                AppState.gameState.currentNumber = reCalc;
-                UI.renderGame();
-            },
-
-            useJoker: (type) => {
-                if (AppState.userData.jokers[type] <= 0) return;
-                if (AppState.gameState.currentNumber === AppState.gameState.targetNumber) return;
-
-                if (type === "ele") {
-                    AppState.gameState.currentNumber = AppState.gameState.targetNumber;
-                    AppState.gameState.history.push("✨ JKR");
-                } 
-                else if (type === "fisilda") {
-                    if (AppState.gameState.currentNumber < AppState.gameState.targetNumber) {
-                        AppState.gameState.currentNumber += 1;
-                        AppState.gameState.history.push("🔮 +1");
-                    } else {
-                        AppState.gameState.currentNumber -= 1;
-                        AppState.gameState.history.push("🔮 -1");
-                    }
-                } 
-                else if (type === "basamak") {
-                    AppState.gameState.currentNumber *= 2;
-                    AppState.gameState.history.push("🚀 x2");
-                }
-
-                AppState.userData.jokers[type] -= 1;
-                DatabaseManager.saveUserData();
-                UI.renderStats();
-                UI.renderGame();
-            },
-
-            submitLevel: () => {
-                if (AppState.gameState.currentNumber !== AppState.gameState.targetNumber) return;
-
-                const previousScore = AppState.userData.score;
-                AppState.userData.score += 500; // Seviye ödülü sabitleyici
-
-                if (AppState.userData.score > AppState.userData.highScore) {
-                    AppState.userData.highScore = AppState.userData.score;
-                }
-
-                AppState.userData.level += 1;
-                AppState.userData.jokers.ele += 1;
-                AppState.userData.jokers.fisilda += 1;
-                AppState.userData.jokers.basamak += 1;
-
-                DatabaseManager.saveUserData();
-                UI.renderStats();
-
-                const prevRank = GameLogic.getRankName(previousScore);
-                const newRank = GameLogic.getRankName(AppState.userData.score);
-                if (prevRank !== newRank) {
-                    UI.openCelebration(newRank);
-                }
-
-                GameLogic.generateLevel();
-            },
-
-            getRankName: (score) => {
-                if (score < 1000) return "Çömez";
-                if (score < 4000) return "Fibonacci";
-                if (score < 10000) return "Einstein";
-                return "Tetah Mara";
-            }
-        };
-
-        /* ════════════════════════════════════════════════
-           UI CONTROLLER ENGINE
-        ════════════════════════════════════════════════ */
-        const UI = {
-            el: (id) => document.getElementById(id),
-            show: (id) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.classList.remove("hidden");
-                    if (id.endsWith("-modal")) {
-                        setTimeout(() => {
-                            const inner = el.querySelector("[id$='-inner']");
-                            if (inner) inner.classList.remove("scale-95", "opacity-0");
-                        }, 10);
-                    }
-                }
-            },
-            hide: (id) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    if (id.endsWith("-modal")) {
-                        const inner = el.querySelector("[id$='-inner']");
-                        if (inner) inner.classList.add("scale-95", "opacity-0");
-                        setTimeout(() => el.classList.add("hidden"), 200);
-                    } else {
-                        el.classList.add("hidden");
-                    }
-                }
-            },
-
-            toggleTheme: () => {
-                const body = document.body;
-                if (body.classList.contains("theme-dark")) {
-                    body.classList.replace("theme-dark", "theme-light");
-                    UI.el("theme-icon").className = "fa-solid fa-moon";
-                } else {
-                    body.classList.replace("theme-light", "theme-dark");
-                    UI.el("theme-icon").className = "fa-solid fa-sun";
-                }
-            },
-
-            renderStats: () => {
-                UI.el("stat-score").innerText = AppState.userData.score;
-                UI.el("stat-high").innerText = AppState.userData.highScore;
-                UI.el("stat-level").innerText = AppState.userData.level;
-                
-                UI.el("joker-ele-count").innerText = AppState.userData.jokers.ele;
-                UI.el("joker-fisilda-count").innerText = AppState.userData.jokers.fisilda;
-                UI.el("joker-basamak-count").innerText = AppState.userData.jokers.basamak;
-            },
-
-            renderGame: () => {
-                UI.el("target-number").innerText = AppState.gameState.currentNumber;
-                UI.el("goal-number-val").innerText = AppState.gameState.targetNumber;
-
-                const histEl = UI.el("operation-history");
-                histEl.innerHTML = "";
-                if (AppState.gameState.history.length === 0) {
-                    histEl.innerHTML = "<span class='italic opacity-40'>Operasyon bekleniyor...</span>";
-                } else {
-                    AppState.gameState.history.forEach((step, index) => {
-                        if (index > 0) {
-                            const arrow = document.createElement("i");
-                            arrow.className = "fa-solid fa-chevron-right text-[9px] opacity-30 mx-0.5";
-                            histEl.appendChild(arrow);
-                        }
-                        const span = document.createElement("span");
-                        span.className = "px-1.5 py-0.5 bg-slate-800/60 rounded border app-border font-bold";
-                        span.innerText = step;
-                        histEl.appendChild(span);
-                    });
-                }
-
-                const submitBtn = UI.el("btn-submit-action");
-                if (AppState.gameState.currentNumber === AppState.gameState.targetNumber) {
-                    submitBtn.className = "col-span-10 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-sm py-4 rounded-xl shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition mt-1 uppercase tracking-wider animate-bounce cursor-pointer";
-                    submitBtn.innerText = "BÖLÜMÜ TAMAMLA (HEDEFE ULAŞTIN!)";
-                } else {
-                    submitBtn.className = "col-span-10 bg-slate-700 text-slate-400 font-semibold text-sm py-4 rounded-xl shadow mt-1 uppercase tracking-wider cursor-not-allowed";
-                    submitBtn.innerText = "HEDEFE ULAŞMAYA ÇALIŞ";
-                }
-            },
-
-            openLeaderboard: () => {
-                UI.show("leaderboard-modal");
-                Leaderboard.fetch();
-            },
-            closeLeaderboard: () => UI.hide("leaderboard-modal"),
-
-            openProfileCard: () => {
-                const avatarSeed = AppState.userData.username || "default";
-                UI.el("profile-card-avatar").src = `https://api.dicebear.com/7.x/bottts/svg?seed=${avatarSeed}`;
-                UI.el("profile-card-username").innerText = `@${AppState.userData.username || 'deha'}`;
-                UI.el("profile-card-score").innerText = AppState.userData.score;
-                UI.el("profile-card-high").innerText = AppState.userData.highScore;
-                UI.el("profile-card-level").innerText = AppState.userData.level;
-                
-                const totalJokers = AppState.userData.jokers.ele + AppState.userData.jokers.fisilda + AppState.userData.jokers.basamak;
-                UI.el("profile-card-jokers").innerText = totalJokers;
-                UI.el("profile-card-rank-badge").innerText = GameLogic.getRankName(AppState.userData.score);
-
-                UI.show("player-card-modal");
-            },
-            closeProfileCard: () => UI.hide("player-card-modal"),
-
-            openCelebration: (rankName) => {
-                UI.el("celebration-rank-box").innerText = rankName;
-                UI.show("rank-celebration-modal");
-                UI.triggerConfetti();
-            },
-            closeCelebration: () => UI.hide("rank-celebration-modal"),
-
-            triggerConfetti: () => {
-                const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
-                for (let i = 0; i < 30; i++) {
-                    const c = document.createElement("div");
-                    c.className = "confetti";
-                    c.style.left = Math.random() * 100 + "vw";
-                    c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    c.style.animationDuration = (Math.random() * 2 + 1.5) + "s";
-                    document.body.appendChild(c);
-                    setTimeout(() => c.remove(), 3500);
-                }
-            }
-        };
-
-        /* ════════════════════════════════════════════════
-           GLOBAL LEADERBOARD ENGINE
-        ════════════════════════════════════════════════ */
-        const Leaderboard = {
-            fetch: () => {
-                const listEl = UI.el("leaderboard-list");
-                listEl.innerHTML = "<div class='text-center py-6 text-xs text-muted'><i class='fa-solid fa-spinner animate-spin mr-1'></i> Skorlar yükleniyor...</div>";
-
-                database.ref("kullanicilar").orderByChild("score").limitToLast(20).once("value")
-                    .then((snapshot) => {
-                        listEl.innerHTML = "";
-                        let players = [];
-                        snapshot.forEach((child) => { players.push(child.val()); });
-                        players.reverse();
-
-                        players.forEach((p, idx) => {
-                            const isMe = p.username === AppState.userData.username;
-                            const card = document.createElement("div");
-                            card.className = `flex items-center justify-between p-3 rounded-xl border ${isMe ? 'bg-indigo-600/10 border-indigo-500' : 'app-card app-border'}`;
-                            
-                            row.innerHTML = `
-                                <div class="flex items-center gap-3 truncate">
-                                    <span class='w-4 font-bold text-muted'>${idx + 1}</span>
-                                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.username || 'def'}" class="w-8 h-8 rounded-lg bg-slate-800 border app-border object-cover">
-                                    <div class="truncate">
-                                        <div class="text-xs font-bold ${isMe ? 'text-indigo-400' : ''}">@${p.username || 'anonim'}</div>
-                                        <div class="text-[10px] text-muted">${GameLogic.getRankName(p.score)}</div>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-xs font-black text-indigo-500">${p.score} P</div>
-                                    <div class="text-[9px] text-muted">Seviye ${p.level || 1}</div>
-                                </div>
-                            `;
-                            listEl.appendChild(card);
-                        });
-                    })
-                    .catch((err) => {
-                        listEl.innerHTML = "<div class='text-center py-4 text-xs text-red-400'>Skorlar yüklenemedi.</div>";
-                    });
-            }
-        };
-
-        /* ════════════════════════════════════════════════
-           EVENT BINDINGS BOOTSTRAP
-        ════════════════════════════════════════════════ */
-        function bindEvents() {
-            UI.el("btn-google-login").addEventListener("click", () => {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider).catch((err) => alert("Giriş başarısız!"));
+                this._executeSubmit();
+            }).catch(err => {
+                UI.showError("Hamle gönderilemedi.");
             });
+        } else {
+            this._executeSubmit();
+        }
+    },
 
-            UI.el("btn-save-username").addEventListener("click", () => DatabaseManager.saveUsername());
-            UI.el("btn-toggle-theme").addEventListener("click", () => UI.toggleTheme());
-            UI.el("btn-open-leaderboard").addEventListener("click", () => UI.openLeaderboard());
-            UI.el("btn-close-leaderboard").addEventListener("click", () => UI.closeLeaderboard());
-            UI.el("btn-open-profile-header").addEventListener("click", () => UI.openProfileCard());
-            UI.el("btn-close-profile").addEventListener("click", () => UI.closeProfileCard());
-            UI.el("btn-close-celebration").addEventListener("click", () => UI.closeCelebration());
+    _executeSubmit() {
+        const emptyState = document.getElementById("empty-state");
+        if (emptyState) emptyState.style.display = "none";
 
-            document.querySelectorAll("button[data-key]").forEach(btn => {
-                btn.addEventListener("click", () => GameLogic.applyMathKey(btn.getAttribute("data-key")));
-            });
+        gameState.movesCount++;
+        UI.updateMoveText();
 
-            UI.el("btn-undo").addEventListener("click", () => GameLogic.undo());
-            UI.el("btn-submit-action").addEventListener("click", () => GameLogic.submitLevel());
+        const guessStr  = gameState.currentGuess.join("");
+        const { plus, minus } = this.calcScore(guessStr, gameState.secretNumber);
+        const resultStr = `+${plus} -${minus}`;
 
-            UI.el("btn-joker-ele").addEventListener("click", () => GameLogic.useJoker("ele"));
-            UI.el("btn-joker-fisilda").addEventListener("click", () => GameLogic.useJoker("fisilda"));
-            UI.el("btn-joker-basamak").addEventListener("click", () => GameLogic.useJoker("basamak"));
+        if (gameState.isPvP) {
+            fbWriteGuess(guessStr, resultStr, plus === gameState.maxDigits);
+        } else {
+            UI.renderHistoryRow(guessStr, plus, minus);
 
-            UI.el("btn-logout").addEventListener("click", () => {
-                if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
-                    auth.signOut().then(() => window.location.reload());
-                }
-            });
+            if (plus === gameState.maxDigits) {
+                this.endSinglePlayer(true);
+                gameState.currentGuess = [];
+                UI.updateInputCells();
+                return;
+            }
+            if (gameState.difficulty === "pro" && gameState.movesCount >= gameState.maxProMoves) {
+                this.endSinglePlayer(false, "Hamle Sınırı!");
+                gameState.currentGuess = [];
+                UI.updateInputCells();
+                return;
+            }
+            if (gameState.difficulty === "pro") {
+                gameState.timeLeft = getRankConfig(playerStats.level).duration;
+                UI.el("timer-text").textContent = `${gameState.timeLeft}s`;
+            }
         }
 
-        window.addEventListener("load", () => {
-            initFirebase();
-            bindEvents();
+        gameState.currentGuess = [];
+        UI.updateInputCells();
+    },
 
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    DatabaseManager.checkUserNode(user);
-                } else {
-                    UI.hide("loading-screen");
-                    UI.show("auth-screen");
-                    UI.show("auth-login-view");
-                    UI.hide("auth-username-view");
-                }
-            });
+    endSinglePlayer(isWin, reason = "") {
+        gameState.isActive = false;
+        timers.clear();
+        gameState.lastResultWin = isWin;
+
+        if (isWin) {
+            const tahminPuani = Math.max(0, 160 - ((gameState.movesCount - 1) * 10));
+            const zamanPuani  = Math.max(0, 60 - Math.floor(gameState.totalSecondsSpent / 10));
+            const toplam      = tahminPuani + zamanPuani;
+            playerStats.score += toplam;
+            saveStats();
+            UI.showGameOverModal({ isWin: true, tahminPuani, zamanPuani, toplam });
+        } else {
+            UI.showGameOverModal({ isWin: false, reason });
+        }
+    },
+
+    endPvP(data) {
+        gameState.isActive = false;
+        timers.clear();
+        firebaseRefs.detachRoom();
+
+        const winStatus = (data.winner === gameState.myRole);
+        if (winStatus) {
+            playerStats.score += 499;
+            saveStats();
+        }
+        UI.showPvPGameOverModal({
+            winStatus,
+            timeoutLoss: data.winner === "timeout",
+            pvpTimeMode: gameState.pvpTimeMode
         });
-    </script>
+    },
+
+    nextLevelOrRestart() {
+        UI.modal.hide("game-over-modal");
+        if (gameState.isPvP) { UI.showStartMenu(); return; }
+
+        if (gameState.lastResultWin) {
+            const oldConfig = getRankConfig(playerStats.level);
+            playerStats.level = playerStats.level < MAX_LEVELS ? playerStats.level + 1 : 1;
+            playerStats.score += 500;
+            playerStats.jokers.ele++;
+            playerStats.jokers.fisilda++;
+            playerStats.jokers.basamak++;
+            saveStats();
+
+            const newConfig = getRankConfig(playerStats.level);
+            if (oldConfig.name !== newConfig.name) {
+                UI.showRankCelebration(newConfig);
+                return;
+            }
+        }
+        this.initRound();
+    },
+
+    changeHistoryFilter(filter) {
+        gameState.currentFilter = filter;
+        const map = { all: "filter-all-btn", me: "filter-me-btn", opp: "filter-opp-btn" };
+        Object.entries(map).forEach(([key, id]) => {
+            const btn = UI.el(id);
+            btn.className = `py-1 rounded-lg text-center transition-all cursor-pointer ${
+                key === filter ? "bg-violet-600 text-white" : "text-slate-400"
+            }`;
+        });
+        UI.renderFilteredHistory();
+    },
+
+    setupTimer() {
+        timers.clear();
+        const timerBox = UI.el("timer-box");
+
+        if (gameState.isPvP && gameState.pvpTimeMode === "timed") {
+            gameState.timeLeft = PVP_TIMEOUT;
+            UI.el("timer-text").textContent = `${PVP_TIMEOUT}s`;
+            timerBox.classList.remove("u-hidden");
+            timerBox.classList.add("flex");
+
+            timers.game = setInterval(() => {
+                if (!gameState.isActive) return;
+                gameState.timeLeft--;
+                gameState.totalSecondsSpent++;
+                UI.el("timer-text").textContent = `${gameState.timeLeft}s`;
+
+                if (gameState.timeLeft <= 0) {
+                    timers.clear();
+                    firebaseRefs.roomRef.once("value", (snapshot) => {
+                        const d = snapshot.val();
+                        if (d?.turn === gameState.myRole && d?.status === "playing") {
+                            const loser  = gameState.myRole;
+                            const winner = loser === "creator" ? "joiner" : "creator";
+                            firebaseRefs.roomRef.update({ status: 'ended', winner }).catch(console.error);
+                        }
+                    }).catch(console.error);
+                }
+            }, 1000);
+
+        } else if (!gameState.isPvP && gameState.difficulty === "pro") {
+            UI.el("timer-text").textContent = `${gameState.timeLeft}s`;
+            timerBox.classList.remove("u-hidden");
+            timerBox.classList.add("flex");
+
+            timers.game = setInterval(() => {
+                if (!gameState.isActive) return;
+                gameState.timeLeft--;
+                gameState.totalSecondsSpent++;
+                UI.el("timer-text").textContent = `${gameState.timeLeft}s`;
+                if (gameState.timeLeft <= 0) this.endSinglePlayer(false, "Zaman Aşımı!");
+            }, 1000);
+
+        } else {
+            timerBox.classList.add("u-hidden");
+            timerBox.classList.remove("flex");
+            timers.game = setInterval(() => {
+                if (gameState.isActive) gameState.totalSecondsSpent++;
+            }, 1000);
+        }
+    },
+
+    useJoker(type) {
+        if (!gameState.isActive) return;
+        const costs = { ele: 100, fisilda: 200, basamak: 500 };
+
+        if (playerStats.jokers[type] > 0) {
+            playerStats.jokers[type]--;
+        } else {
+            if (playerStats.score < costs[type]) {
+                UI.showError(`Yetersiz Joker Stoğu ve Puan! Gereken: ${costs[type]} puan.`);
+                return;
+            }
+            playerStats.score -= costs[type];
+        }
+
+        saveStats();
+        UI.updateMenuData();
+
+        if (type === "ele") {
+            const candidates = gameState.allowedPool.filter(n =>
+                !gameState.secretNumber.includes(n) &&
+                document.getElementById(`key-${n}`)?.clickState !== 1
+            );
+            if (candidates.length === 0) { UI.showError("Elenecek rakam kalmadı!"); return; }
+            const picked = candidates[Math.floor(Math.random() * candidates.length)];
+            _setKeyState(picked, 1);
+
+        } else if (type === "fisilda") {
+            const candidates = gameState.secretNumber.split("").filter(n =>
+                document.getElementById(`key-${n}`)?.clickState !== 2
+            );
+            if (candidates.length === 0) { UI.showError("Tüm rakamları buldun!"); return; }
+            const picked = candidates[Math.floor(Math.random() * candidates.length)];
+            _setKeyState(picked, 2);
+            UI.showError(`Fısıltı: Gizli sayıda "${picked}" rakamı var!`); 
+
+        } else if (type === "basamak") {
+            const unopened = [];
+            for (let i = 0; i < gameState.maxDigits; i++) {
+                if (!UI.el(`cell-${i}`)?.textContent.trim()) unopened.push(i);
+            }
+            const targetIdx = unopened.length > 0
+                ? unopened[Math.floor(Math.random() * unopened.length)]
+                : Math.floor(Math.random() * gameState.maxDigits);
+            const digit = gameState.secretNumber[targetIdx];
+            const names = ["1. Basamak","2. Basamak","3. Basamak","4. Basamak"];
+            _setKeyState(digit, 2);
+            UI.showError(`TAM İSABET! 👉 ${names[targetIdx]} rakamı: "${digit}"`);
+        }
+    }
+};
+
+function _setKeyState(digit, state) {
+    const key = document.getElementById(`key-${digit}`);
+    if (!key) return;
+    key.clickState = state;
+    key.classList.remove("key-neutral", "key-red", "key-green");
+    if      (state === 1) key.classList.add("key-red");
+    else if (state === 2) key.classList.add("key-green");
+    else                  key.classList.add("key-neutral");
+}
+
+/* ════════════════════════════════════════════════
+   §5 · UI / RENDER CONTROLLER
+════════════════════════════════════════════════ */
+const UI = {
+    el(id) { return document.getElementById(id); },
+    modal: {
+        show(id) { UI.el(id)?.classList.remove("u-hidden"); },
+        hide(id) { UI.el(id)?.classList.add("u-hidden");    }
+    },
+
+    showStartMenu() {
+        this.modal.hide("game-over-modal");
+        this.modal.show("start-menu-modal");
+        this.modal.hide("pvp-filter-bar");
+
+        timers.clear();
+        firebaseRefs.detachRoom();
+
+        gameState.isActive            = false;
+        gameState.isPvP               = false;
+        gameState.currentGuess        = [];
+        gameState.localGuessesHistory = [];
+
+        this.el("pvp-turn-badge").classList.add("u-hidden");
+        this.el("normal-score-badge").classList.remove("u-hidden");
+        this.el("history-container").innerHTML = "";
+        this.updateMenuData();
+    },
+
+    updateMenuData() {
+        const stats  = playerStats;
+        const config = getRankConfig(stats.level);
+
+        this.el("menu-user-id").textContent = stats.username ? `@${stats.username}` : "@username";
+        this.el("menu-level-text").textContent = stats.level;
+        this.el("menu-score-text").textContent = stats.score;
+        this.el("top-score-text").textContent  = stats.score;
+        this.el("badge-level").textContent     = `LVL ${stats.level}`;
+
+        this.el("stok-ele").textContent     = `(${stats.jokers.ele})`;
+        this.el("stok-fisilda").textContent = `(${stats.jokers.fisilda})`;
+        this.el("stok-basamak").textContent = `(${stats.jokers.basamak})`;
+
+        this.el("menu-rank-name").textContent = config.name;
+        this.el("top-rank-name").textContent  = config.name;
+        this.el("pro-desc-text").textContent  = `Maks ${config.maxMoves} Hamle / ${config.duration}s Süre!`;
+
+        this._applyAvatarToTargets(config, [
+            { emoji: "menu-avatar-emoji", img: "menu-avatar-img" },
+            { emoji: "top-avatar-emoji",  img: "top-avatar-img"  }
+        ]);
+        this.applyTheme();
+    },
+
+    _applyAvatarToTargets(config, targets) {
+        targets.forEach(({ emoji, img }) => {
+            const emojiEl = this.el(emoji);
+            const imgEl   = this.el(img);
+            if (!emojiEl || !imgEl) return;
+            
+            if (config.isImg) {
+                emojiEl.classList.add("u-hidden");
+                imgEl.classList.remove("u-hidden");
+                imgEl.src = config.file;
+            } else if (playerStats.googlePhoto && playerStats.googlePhoto !== "") {
+                emojiEl.classList.add("u-hidden");
+                imgEl.classList.remove("u-hidden");
+                imgEl.src = playerStats.googlePhoto;
+            } else {
+                imgEl.classList.add("u-hidden");
+                emojiEl.classList.remove("u-hidden");
+                emojiEl.textContent = config.emoji;
+            }
+        });
+    },
+
+    openProfileCard() {
+        const config = getRankConfig(playerStats.level);
+        this.el("card-rank-name").textContent  = config.name;
+        this.el("card-level-val").textContent  = playerStats.level;
+        this.el("card-score-val").textContent  = playerStats.score;
+        this.el("card-ele-val").textContent     = `${playerStats.jokers.ele} Adet`;
+        this.el("card-fisilda-val").textContent = `${playerStats.jokers.fisilda} Adet`;
+        this.el("card-basamak-val").textContent = `${playerStats.jokers.basamak} Adet`;
+
+        this._applyAvatarToTargets(config, [
+            { emoji: "card-avatar-emoji", img: "card-avatar-img" }
+        ]);
+        this.modal.show("player-card-modal");
+    },
+
+    closeProfileCard() { this.modal.hide("player-card-modal"); },
+
+    toggleTheme() {
+        playerStats.theme = playerStats.theme === "dark" ? "light" : "dark";
+        saveStats();
+        this.applyTheme();
+    },
+
+    applyTheme() {
+        const container = this.el("main-container");
+        const themeIcon = this.el("theme-btn-icon");
+        if (playerStats.theme === "light") {
+            container.classList.replace("theme-dark", "theme-light");
+            themeIcon.className = "fa-solid fa-moon text-indigo-500";
+        } else {
+            container.classList.replace("theme-light", "theme-dark");
+            themeIcon.className = "fa-solid fa-sun text-amber-400";
+        }
+    },
+
+    buildGameElements() {
+        const wrapper = this.el("cells-wrapper");
+        wrapper.innerHTML = "";
+        for (let i = 0; i < gameState.maxDigits; i++) {
+            const cell = document.createElement("div");
+            cell.id        = `cell-${i}`;
+            cell.className = "w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all shadow-inner";
+            cell.style.cssText = "background-color: var(--bg-card); border: 2px solid var(--border-color);";
+            wrapper.appendChild(cell);
+        }
+
+        const kbContainer = this.el("keyboard-container");
+        kbContainer.innerHTML = "";
+
+        if (gameState.difficulty === "basic") {
+            kbContainer.innerHTML = `
+                <div class="grid grid-cols-6 gap-1.5">
+                    ${[1,2,3,4,5,6].map(n => _keyBtn(n)).join("")}
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-0.5">
+                    ${_delBtn("h-11")}
+                    ${_subBtn("h-11")}
+                </div>`;
+        } else {
+            kbContainer.innerHTML = `
+                <div class="grid grid-cols-5 gap-1.5">
+                    ${[1,2,3,4,5].map(n => _keyBtn(n)).join("")}
+                </div>
+                <div class="grid grid-cols-6 gap-1.5">
+                    ${[6,7,8,9].map(n => _keyBtn(n)).join("")}
+                    ${_delBtn("h-12")}
+                    ${_subBtn("h-12")}
+                </div>`;
+        }
+        this._bindTouchControls();
+    },
+
+    _bindTouchControls() {
+        this.el("btn-del").onclick = (e) => { e.preventDefault(); this.deleteDigit(); };
+        this.el("btn-sub").onclick = (e) => { e.preventDefault(); GameLogic.submitGuess(); };
+
+        gameState.allowedPool.forEach(n => {
+            const key = document.getElementById(`key-${n}`);
+            if (!key) return;
+            key.clickState = 0;
+            let touchStartTime = 0, touchTimer = null, isLongPress = false;
+
+            key.ontouchstart = (e) => {
+                e.preventDefault(); isLongPress = false; touchStartTime = Date.now();
+                touchTimer = setTimeout(() => { isLongPress = true; this._triggerLongPress(key, n); }, 400);
+            };
+            key.ontouchend = (e) => {
+                e.preventDefault(); clearTimeout(touchTimer);
+                if (!isLongPress && (Date.now() - touchStartTime < 400)) this.inputDigit(n);
+            };
+            key.onclick = () => { if (!("ontouchstart" in window)) this.inputDigit(n); };
+        });
+    },
+
+    _triggerLongPress(key, digit) {
+        if (!gameState.isActive) return;
+        key.clickState = (key.clickState + 1) % 3;
+        _setKeyState(digit, key.clickState);
+        if (navigator.vibrate) navigator.vibrate(40);
+    },
+
+    inputDigit(digit) {
+        if (!gameState.isActive || gameState.currentGuess.length >= gameState.maxDigits) return;
+        if (gameState.currentGuess.includes(digit)) { this.shakeCells(); return; }
+        gameState.currentGuess.push(digit);
+        this.updateInputCells();
+    },
+
+    deleteDigit() {
+        if (!gameState.isActive || gameState.currentGuess.length === 0) return;
+        gameState.currentGuess.pop();
+        this.updateInputCells();
+    },
+
+    updateInputCells() {
+        for (let i = 0; i < gameState.maxDigits; i++) {
+            const cell = this.el(`cell-${i}`);
+            if (!cell) continue;
+            if (gameState.currentGuess[i]) {
+                cell.textContent    = gameState.currentGuess[i];
+                cell.style.borderColor = "#f59e0b";
+            } else {
+                cell.textContent    = "";
+                cell.style.borderColor = "var(--border-color)";
+            }
+        }
+    },
+
+    shakeCells() {
+        for (let i = 0; i < gameState.maxDigits; i++) {
+            const cell = this.el(`cell-${i}`);
+            if (!cell) continue;
+            cell.classList.add("animate-pulse");
+            setTimeout(() => cell.classList.remove("animate-pulse"), 200);
+        }
+    },
+
+    updateMoveText() {
+        const container = this.el("move-text-container");
+        if (gameState.isPvP) {
+            container.innerHTML = `Hamle: <span class="font-bold text-violet-400">${gameState.movesCount}</span>`;
+        } else if (gameState.difficulty === "pro") {
+            container.innerHTML = `Kalan: <span class="font-bold text-rose-500">${gameState.maxProMoves - gameState.movesCount}</span>`;
+        } else {
+            container.innerHTML = `Hamle: <span class="font-bold text-orange-400">${gameState.movesCount}</span>`;
+        }
+    },
+
+    renderHistoryRow(tahmin, arti, eksi) {
+        const container = this.el("history-container");
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors";
+        row.style.backgroundColor = "var(--bg-card)";
+        row.style.borderColor     = "var(--border-color)";
+
+        let cellsHtml = `<div class="flex gap-1">`;
+        for (let i = 0; i < gameState.maxDigits; i++) {
+            cellsHtml += `<div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-base"
+                style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i]}</div>`;
+        }
+        cellsHtml += `</div>`;
+
+        let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
+        if (arti === 0 && eksi === 0) {
+            badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-500 border border-slate-500/20">0</span>`;
+        } else {
+            if (eksi > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/20">-${eksi}</span>`;
+            if (arti > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+${arti}</span>`;
+        }
+        badgeHtml += `</div>`;
+
+        row.innerHTML = cellsHtml + badgeHtml;
+        container.insertBefore(row, container.firstChild);
+    },
+
+    renderFilteredHistory() {
+        const container = this.el("history-container");
+        container.innerHTML = "";
+
+        let filtered = gameState.localGuessesHistory;
+        if (gameState.currentFilter === "me")  filtered = filtered.filter(x => x.isMe);
+        if (gameState.currentFilter === "opp") filtered = filtered.filter(x => !x.isMe);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-xs italic text-slate-500">Bu sekmede henüz tahmin yok.</div>`;
+            return;
+        }
+
+        for (let i = filtered.length - 1; i >= 0; i--) {
+            const item = filtered[i];
+            const row  = document.createElement("div");
+            row.className = "flex items-center justify-between p-2 rounded-2xl shadow-md shrink-0 border transition-colors modal-enter";
+
+            if (item.isMe) {
+                row.style.backgroundColor = "rgba(99,102,241,0.08)";
+                row.style.borderColor     = "rgba(99,102,241,0.3)";
+            } else {
+                row.style.backgroundColor = "var(--bg-card)";
+                row.style.borderColor     = "var(--border-color)";
+            }
+
+            let cellsHtml = `<div class="flex items-center gap-2">`;
+            cellsHtml += `<span class="text-[8px] font-mono font-bold px-1 rounded ${item.isMe ? "bg-indigo-500 text-white" : "bg-slate-700 text-slate-300"}">${item.isMe ? "SİZ" : "RAKİP"}</span>`;
+            cellsHtml += `<div class="flex gap-1">`;
+            for (let j = 0; j < 4; j++) {
+                cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs"
+                    style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${item.tahmin[j]}</div>`;
+            }
+            cellsHtml += `</div></div>`;
+
+            const badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">
+                <span class="px-2 py-0.5 rounded-md bg-violet-600/10 text-violet-400 border border-violet-500/20">${item.sonuc}</span>
+            </div>`;
+
+            row.innerHTML = cellsHtml + badgeHtml;
+            container.appendChild(row);
+        }
+    },
+
+    showGameOverModal({ isWin, tahminPuani = 0, zamanPuani = 0, toplam = 0, reason = "" }) {
+        const iconContainer = this.el("modal-icon-container");
+        const iconMain      = this.el("modal-icon-main");
+        const title         = this.el("modal-title");
+        const subtitle      = this.el("modal-subtitle");
+        const actionBtn     = this.el("btn-next-level");
+        const puanDetay     = this.el("modal-puan-detay");
+
+        this.el("modal-diff-text").textContent       = gameState.difficulty;
+        this.el("modal-diff-spec").textContent       = gameState.difficulty;
+        this.el("modal-moves").textContent           = gameState.movesCount;
+        this.el("modal-total-time-spent").textContent = `${gameState.totalSecondsSpent}s`;
+
+        if (isWin) {
+            iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-xl text-emerald-400";
+            iconMain.className      = "fa-solid fa-circle-check";
+            title.textContent       = "Başarılı!";
+            title.className         = "text-xl font-black text-emerald-400";
+            subtitle.textContent    = "Sayıyı çözdün!";
+            puanDetay.style.display = "block";
+            this.el("puan-tahmin").textContent = `+${tahminPuani}`;
+            this.el("puan-zaman").textContent  = `+${zamanPuani}`;
+            this.el("puan-toplam").textContent = `+${toplam}`;
+            actionBtn.innerHTML = `Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-xs"></i>`;
+        } else {
+            iconContainer.className = "w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-xl text-red-400";
+            iconMain.className      = "fa-solid fa-triangle-exclamation";
+            title.textContent       = "Başaramadın!";
+            title.className         = "text-xl font-black text-red-500";
+            subtitle.textContent    = `Gizli Sayı: ${gameState.secretNumber} (${reason})`;
+            puanDetay.style.display = "none";
+            actionBtn.innerHTML = `Tekrar Dene <i class="fa-solid fa-rotate-right ml-1 text-xs"></i>`;
+        }
+        this.modal.show("game-over-modal");
+    },
+
+    showPvPGameOverModal({ winStatus, timeoutLoss, pvpTimeMode }) {
+        const title    = this.el("modal-title");
+        const subtitle = this.el("modal-subtitle");
+        const actionBtn= this.el("btn-next-level");
+
+        this.el("modal-puan-detay").style.display = "none";
+        this.el("modal-diff-text").textContent       = "PvP";
+        this.el("modal-diff-spec").textContent       = pvpTimeMode === "timed" ? "Süreli Düello" : "Süresiz Düello";
+        this.el("modal-moves").textContent           = gameState.movesCount;
+        this.el("modal-total-time-spent").textContent = `${gameState.totalSecondsSpent}s`;
+
+        if (winStatus) {
+            title.textContent    = "ZAFER SİZİN! 🏆";
+            title.className      = "text-2xl font-black text-emerald-400";
+            subtitle.textContent = "Mükemmel hamle! Düelloyu kazandınız: +499 Puan!";
+        } else {
+            title.textContent    = "KAYBETTİNİZ ⚔️";
+            title.className      = "text-2xl font-black text-red-500";
+            subtitle.textContent = timeoutLoss
+                ? "Zamanınız dolduğu için kaybettiniz!"
+                : "Rakibiniz gizli sayıyı önce çözdü!";
+        }
+        actionBtn.innerHTML = `Ana Menüye Dön <i class="fa-solid fa-house ml-1 text-xs"></i>`;
+        this.modal.show("game-over-modal");
+    },
+
+    showRankCelebration(config) {
+        this.el("celeb-rank-name").textContent = config.name;
+        this.el("celeb-quote").textContent     = config.quote;
+        this._applyAvatarToTargets(config, [
+            { emoji: "celeb-avatar-emoji", img: "celeb-avatar-img" }
+        ]);
+        this.modal.show("rank-celebration-modal");
+    },
+
+    closeCelebration() {
+        this.modal.hide("rank-celebration-modal");
+        GameLogic.initRound();
+    },
+
+    pvp: {
+        showWaiting(code) {
+            UI.el("pvp-initial-actions").classList.add("u-hidden");
+            UI.el("displayed-room-code").textContent = code;
+            UI.el("pvp-waiting-screen").classList.remove("u-hidden");
+        },
+        showSecretSelect() {
+            UI.el("pvp-waiting-screen").classList.add("u-hidden");
+            UI.el("pvp-secret-select-screen").classList.remove("u-hidden");
+        },
+        showSecretWaiting() {
+            UI.el("pvp-secret-select-screen").innerHTML = `
+                <div class="py-4 text-center space-y-2">
+                    <p class="text-sm font-bold text-emerald-400">Gizli Sayınız Hazır! ✅</p>
+                    <p class="text-xs text-slate-400">Rakibin de sayısını belirlemesi bekleniyor...</p>
+                    <div class="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </div>`;
+        },
+        openMenu() {
+            setPvPTimeMode("timeless");
+            UI.el("pvp-initial-actions").classList.remove("u-hidden");
+            UI.el("pvp-waiting-screen").classList.add("u-hidden");
+            UI.el("pvp-secret-select-screen").classList.add("u-hidden");
+            UI.modal.show("pvp-setup-modal");
+        },
+        closeMenu() { UI.modal.hide("pvp-setup-modal"); },
+        handleTurnBadge(turn) {
+            const badge = UI.el("pvp-turn-badge");
+            if (turn === gameState.myRole) {
+                badge.classList.remove("u-hidden");
+            } else {
+                badge.classList.add("u-hidden");
+            }
+        }
+    },
+
+    showError(msg) {
+        alert(msg);
+    }
+};
+
+function _keyBtn(n) {
+    return `<button id="key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`;
+}
+function _delBtn(h) {
+    return `<button id="btn-del" class="${h} bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>`;
+}
+function _subBtn(h) {
+    return `<button id="btn-sub" class="${h} bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>`;
+}
+
+function setPvPTimeMode(mode) {
+    gameState.pvpTimeMode = mode;
+    const timelessBtn = UI.el("mode-timeless-btn");
+    const timedBtn    = UI.el("mode-timed-btn");
+    const active   = "flex-1 bg-violet-600 text-white font-bold py-1.5 rounded-lg text-xs transition-all";
+    const inactive = "flex-1 bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-xs transition-all";
+    timelessBtn.className = mode === "timeless" ? active : inactive;
+    timedBtn.className    = mode === "timed"    ? active : inactive;
+}
+
+/* ════════════════════════════════════════════════
+   §6 · EVENT BINDINGS (Bootstrap)
+════════════════════════════════════════════════ */
+function bindEvents() {
+    UI.el("btn-google-login").addEventListener("click", () => handleGoogleLogin());
+    UI.el("btn-save-username").addEventListener("click", () => checkAndSaveUsername());
+    UI.el("btn-logout").addEventListener("click", () => handleLogout());
+
+    UI.el("btn-open-leaderboard").addEventListener("click", () => fbLoadLeaderboard());
+    UI.el("btn-close-leaderboard").addEventListener("click", () => UI.modal.hide("leaderboard-modal"));
+
+    UI.el("btn-onboarding-start").addEventListener("click", () => {
+        playerStats.hasSeenOnboarding = true;
+        saveStats();
+        UI.modal.hide("onboarding-modal");
+        UI.showStartMenu();
+    });
+
+    UI.el("btn-open-profile-menu").addEventListener("click", () => UI.openProfileCard());
+
+    UI.el("btn-mode-basic").addEventListener("click",  () => GameLogic.startSinglePlayer("basic"));
+    UI.el("btn-mode-medium").addEventListener("click", () => GameLogic.startSinglePlayer("medium"));
+    UI.el("btn-mode-pro").addEventListener("click",    () => GameLogic.startSinglePlayer("pro"));
+    UI.el("btn-open-pvp-menu").addEventListener("click", () => UI.pvp.openMenu());
+
+    UI.el("btn-close-pvp-menu").addEventListener("click",  () => UI.pvp.closeMenu());
+    UI.el("mode-timeless-btn").addEventListener("click", () => setPvPTimeMode("timeless"));
+    UI.el("mode-timed-btn").addEventListener("click",    () => setPvPTimeMode("timed"));
+    UI.el("btn-create-room").addEventListener("click",   () => fbCreateRoom());
+    UI.el("btn-join-room").addEventListener("click",     () => {
+        const code = UI.el("pvp-code-input").value.trim();
+        fbJoinRoom(code);
+    });
+    UI.el("btn-submit-secret").addEventListener("click", () => {
+        const num = UI.el("pvp-my-secret-input").value.trim();
+        if (num.length !== 4) { UI.showError("Gizli sayı 4 basamaklı olmalıdır!"); return; }
+        if (new Set(num).size !== 4 || num.includes("0")) {
+            UI.showError("Rakamlar tekrarsız olmalı ve 0 içermemelidir (1-9)!");
+            return;
+        }
+        fbSubmitSecret(num);
+    });
+
+    UI.el("btn-quit-game").addEventListener("click",    async () => {
+        if (gameState.isPvP && firebaseRefs.roomRef) await fbQuitRoom();
+        UI.showStartMenu();
+    });
+    UI.el("btn-toggle-theme").addEventListener("click", () => UI.toggleTheme());
+    UI.el("btn-open-profile-header").addEventListener("click", () => UI.openProfileCard());
+
+    UI.el("btn-close-profile").addEventListener("click", () => UI.closeProfileCard());
+    UI.el("player-card-modal").addEventListener("click", () => UI.closeProfileCard());
+    UI.el("player-card-inner").addEventListener("click", e => e.stopPropagation());
+
+    UI.el("btn-joker-ele").addEventListener("click",     () => GameLogic.useJoker("ele"));
+    UI.el("btn-joker-fisilda").addEventListener("click", () => GameLogic.useJoker("fisilda"));
+    UI.el("btn-joker-basamak").addEventListener("click", () => GameLogic.useJoker("basamak"));
+
+    UI.el("filter-all-btn").addEventListener("click", () => GameLogic.changeHistoryFilter("all"));
+    UI.el("filter-me-btn").addEventListener("click",  () => GameLogic.changeHistoryFilter("me"));
+    UI.el("filter-opp-btn").addEventListener("click", () => GameLogic.changeHistoryFilter("opp"));
+
+    UI.el("btn-next-level").addEventListener("click", () => GameLogic.nextLevelOrRestart());
+    UI.el("btn-close-celebration").addEventListener("click", () => UI.closeCelebration());
+}
+
+/* ════════════════════════════════════════════════
+   ENTRY POINT
+════════════════════════════════════════════════ */
+window.addEventListener("load", () => {
+    initFirebase();
+    bindEvents();
+});
+</script>
 </body>
 </html>
