@@ -621,14 +621,6 @@ function initFirebase() {
         firebaseRefs.db   = firebase.database();
         firebaseRefs.auth = firebase.auth();
 
-        // Redirect sonrası geri dönüşü yakala
-        firebaseRefs.auth.getRedirectResult().catch((err) => {
-            if (err && err.code !== "auth/no-current-user") {
-                console.error("[Auth] Redirect sonucu hatası:", err);
-                UI.showError("Giriş tamamlanamadı: " + err.message);
-            }
-        });
-
         firebaseRefs.auth.onAuthStateChanged(async (user) => {
             hideLoadingOverlay();
 
@@ -688,11 +680,16 @@ function hideLoadingOverlay() {
 async function handleGoogleLogin() {
     const provider = new firebase.auth.GoogleAuthProvider();
     try {
-        // GitHub Pages gibi static host'larda popup yerine redirect kullan
-        await firebaseRefs.auth.signInWithRedirect(provider);
+        await firebaseRefs.auth.signInWithPopup(provider);
     } catch (err) {
         console.error("[Auth] Giriş hatası:", err);
-        UI.showError("Google giriş işlemi başlatılamadı. Lütfen tekrar deneyin.");
+        if (err.code === "auth/popup-blocked") {
+            UI.showError("Popup engellendi! Tarayıcınızın popup iznini açın veya sayfayı yenileyin.");
+        } else if (err.code === "auth/popup-closed-by-user") {
+            // Kullanıcı kapattı, sessizce geç
+        } else {
+            UI.showError("Google giriş işlemi başlatılamadı: " + (err.message || err.code));
+        }
     }
 }
 
