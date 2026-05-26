@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>+1 -1 // Sayı Tahmin Oyunu</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen p-2 select-none">
+
+    <div class="w-full max-w-md h-[95vh] flex flex-col justify-between bg-slate-900 p-4 rounded-3xl shadow-2xl border border-slate-800 relative overflow-hidden">
+        
+        <div id="start-menu-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 z-50 transition-all duration-300">
+            <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-1">+1 -1</h2>
+                    <p class="text-xs text-slate-400">Zorluk seviyesini seç ve serüvene başla</p>
+                </div>
+
+                <div class="bg-slate-800/50 p-3 rounded-2xl border border-slate-800 text-sm flex justify-around font-mono">
+                    <div>🏆 Seviye: <span id="menu-level-text" class="text-amber-400 font-bold">1</span></div>
+                    <div>💰 Toplam Puan: <span id="menu-score-text" class="text-emerald-400 font-bold">0</span></div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="selectDifficulty('basic')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                        <div>
+                            <span class="block text-emerald-400 font-bold text-base">Basic</span>
+                            <span class="text-[11px] text-slate-400">3 Basamak (1-6 Rakamları), Süresiz, Puan Kazanmalı</span>
+                        </div>
+                        <i class="fa-solid fa-seedling text-emerald-400 text-lg group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button onclick="selectDifficulty('medium')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                        <div>
+                            <span class="block text-amber-400 font-bold text-base">Medium</span>
+                            <span class="text-[11px] text-slate-400">4 Basamak (1-9 Rakamları), Süresiz, Puan Kazanmalı</span>
+                        </div>
+                        <i class="fa-solid fa-chess-knight text-amber-400 text-lg group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button onclick="selectDifficulty('pro')" class="w-full text-left bg-slate-800/60 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700/50 flex justify-between items-center transition-all cursor-pointer group active:scale-98">
+                        <div>
+                            <span class="block text-rose-500 font-bold text-base">Pro</span>
+                            <span class="text-[11px] text-slate-400">4 Basamak, 60s Dinamik Süreli, Max 10 Hamle!</span>
+                        </div>
+                        <i class="fa-solid fa-fire text-rose-500 text-lg group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <header class="pt-1">
+            <div class="flex justify-between items-center px-1">
+                <button onclick="showStartMenu()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Menü
+                </button>
+                
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <div id="badge-level" class="bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 text-amber-400 font-bold">LVL 1</div>
+                    <div class="bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 text-emerald-400 font-bold">💰 <span id="top-score-text">0</span></div>
+
+                    <div id="timer-box" class="bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700 hidden items-center gap-1.5">
+                        <i class="fa-solid fa-stopwatch text-rose-400 animate-pulse"></i> 
+                        <span id="timer-text" class="font-bold text-rose-400 text-sm">60s</span>
+                    </div>
+
+                    <div class="bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700">
+                        <i class="fa-solid fa-gamepad text-orange-400 mr-1"></i> <span id="move-text-container"><span id="move-text">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main id="history-container" class="flex-1 my-4 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-slate-700">
+            </main>
+
+        <footer class="space-y-4 pb-1">
+            <div id="cells-wrapper" class="flex justify-center gap-3"></div>
+
+            <p class="text-[10px] text-center text-slate-500 font-medium">💡 Çift tıklama: Klavyedeki sayıları stratejik olarak renklendirir.</p>
+            <div id="keyboard-container" class="space-y-2"></div>
+        </footer>
+
+        <div id="game-over-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5">
+                <div id="modal-icon-container" class="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-3xl text-emerald-400">
+                    <i id="modal-icon-main" class="fa-solid fa-trophy"></i>
+                </div>
+                
+                <div>
+                    <h2 id="modal-title" class="text-2xl font-black text-emerald-400">Tebrikler!</h2>
+                    <p id="modal-subtitle" class="text-sm text-slate-400 mt-1">-</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-800">
+                        <span class="block text-xl font-black font-mono text-amber-400 capitalize" id="modal-diff-text">-</span>
+                        <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Zorluk</span>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-800">
+                        <span class="block text-xl font-black font-mono text-orange-400" id="modal-moves">0</span>
+                        <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold" id="modal-moves-label">Hamle Sayısı</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800/80 space-y-2 font-mono text-xs text-left">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Zorluk Modu:</span>
+                        <span class="font-bold text-white uppercase" id="modal-diff-spec">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Geçen Toplam Süre:</span>
+                        <span class="font-bold text-sky-400" id="modal-total-time-spent">0s</span>
+                    </div>
+                    <div id="modal-puan-detay" class="space-y-1 pt-2 border-t border-slate-800">
+                        <div class="flex justify-between text-amber-400">
+                            <span>🎯 Tahmin Taban Puanı:</span>
+                            <span id="puan-tahmin">+0</span>
+                        </div>
+                        <div class="flex justify-between text-sky-400">
+                            <span>⏱️ Zaman Puanı:</span>
+                            <span id="puan-zaman">+0</span>
+                        </div>
+                        <div class="flex justify-between text-emerald-400 text-sm font-black pt-1 border-t border-dashed border-slate-700">
+                            <span>🎉 Toplam Kazanılan:</span>
+                            <span id="puan-toplam">+0 Puan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="nextLevelOrRestart()" id="modal-action-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black py-3.5 rounded-xl text-lg shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer">
+                    Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let playerStats = { level: 1, score: 0 };
+
+        if (localStorage.getItem("plusMinus_playerStats")) {
+            playerStats = JSON.parse(localStorage.getItem("plusMinus_playerStats"));
+        }
+
+        const MAX_LEVELS = 3024; 
+        let currentDifficulty = 'medium'; 
+        let maxDigits = 4;
+        let allowedPool = [];
+        let currentGuess = [];
+        let gizliSayi = "";
+        let movesCount = 0;
+        let timerInterval = null;
+        let timeLeft = 60;
+        let totalSecondsSpent = 0; 
+        let isGameActive = false;
+        let lastResultWin = false;
+
+        let analysis = { zero: 0, minus: 0, plus: 0, mixed: 0 };
+
+        function saveStats() {
+            localStorage.setItem("plusMinus_playerStats", JSON.stringify(playerStats));
+        }
+
+        function updateMenuData() {
+            document.getElementById("menu-level-text").innerText = playerStats.level;
+            document.getElementById("menu-score-text").innerText = playerStats.score;
+            document.getElementById("top-score-text").innerText = playerStats.score;
+            document.getElementById("badge-level").innerText = `LVL ${playerStats.level}`;
+        }
+
+        function showStartMenu() {
+            document.getElementById("game-over-modal").classList.add("hidden");
+            document.getElementById("start-menu-modal").classList.remove("hidden");
+            if (timerInterval) clearInterval(timerInterval);
+            isGameActive = false;
+            updateMenuData();
+        }
+
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            document.getElementById("start-menu-modal").classList.add("hidden");
+            
+            if (diff === 'basic') {
+                maxDigits = 3;
+                allowedPool = ["1","2","3","4","5","6"];
+            } else {
+                maxDigits = 4;
+                allowedPool = ["1","2","3","4","5","6","7","8","9"];
+            }
+            initGame();
+        }
+
+        function initGame() {
+            updateMenuData();
+            buildUIElements();
+
+            gizliSayi = rastgeleSayiUret();
+            console.log(`🔒 Gizli Sayı (${currentDifficulty}):`, gizliSayi);
+
+            currentGuess = [];
+            movesCount = 0;
+            totalSecondsSpent = 0;
+            analysis = { zero: 0, minus: 0, plus: 0, mixed: 0 };
+            isGameActive = true;
+
+            updateMoveText();
+
+            document.getElementById("history-container").innerHTML = `
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-slate-500 text-sm italic">
+                    <i class="fa-solid fa-flag text-3xl mb-2 text-slate-700"></i>
+                    Seviye ${playerStats.level} Başladı! Tahminini yap.
+                </div>`;
+
+            setupTimer();
+        }
+
+        function buildUIElements() {
+            const wrapper = document.getElementById("cells-wrapper");
+            wrapper.innerHTML = "";
+            for (let i = 0; i < maxDigits; i++) {
+                wrapper.innerHTML += `<div id="cell-${i}" class="w-14 h-14 bg-slate-800 border-2 border-slate-700 rounded-xl flex items-center justify-center text-2xl font-black font-mono text-amber-400 transition-all shadow-inner"></div>`;
+            }
+
+            const kbContainer = document.getElementById("keyboard-container");
+            kbContainer.innerHTML = "";
+
+            if (currentDifficulty === 'basic') {
+                kbContainer.innerHTML = `
+                    <div class="grid grid-cols-6 gap-1.5">
+                        ${[1,2,3,4,5,6].map(n => `<button onclick="inputDigit('${n}')" id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-xl active:scale-95 transition-all cursor-pointer text-slate-100">${n}</button>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <button onclick="deleteDigit()" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all cursor-pointer"><i class="fa-solid fa-delete-left text-lg"></i></button>
+                        <button onclick="submitGuess()" class="h-12 bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-lg shadow-amber-500/20"><i class="fa-solid fa-paper-plane text-lg"></i></button>
+                    </div>
+                `;
+            } else {
+                kbContainer.innerHTML = `
+                    <div class="grid grid-cols-5 gap-2">
+                        ${[1,2,3,4,5].map(n => `<button onclick="inputDigit('${n}')" id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-xl active:scale-95 transition-all cursor-pointer text-slate-100">${n}</button>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-6 gap-2">
+                        ${[6,7,8,9].map(n => `<button onclick="inputDigit('${n}')" id="key-${n}" class="h-12 bg-slate-800 border border-slate-700 rounded-xl font-bold text-xl active:scale-95 transition-all cursor-pointer text-slate-100">${n}</button>`).join('')}
+                        <button onclick="deleteDigit()" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all cursor-pointer"><i class="fa-solid fa-delete-left text-lg"></i></button>
+                        <button onclick="submitGuess()" class="h-12 bg-amber-500 text-slate-950 rounded-xl font-black flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-lg shadow-amber-500/20"><i class="fa-solid fa-paper-plane text-lg"></i></button>
+                    </div>
+                `;
+            }
+            attachKeyboardMemoryEvents();
+        }
+
+        function rastgeleSayiUret() {
+            let pool = [...allowedPool];
+            let sonuc = "";
+            for (let i = 0; i < maxDigits; i++) {
+                let rIdx = Math.floor(Math.random() * pool.length);
+                sonuc += pool[rIdx];
+                pool.splice(rIdx, 1);
+            }
+            return sonuc;
+        }
+
+        function setupTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const timerBox = document.getElementById("timer-box");
+
+            if (currentDifficulty === 'pro') {
+                timeLeft = 60;
+                document.getElementById("timer-text").innerText = "60s";
+                timerBox.classList.remove("hidden");
+                timerBox.classList.add("flex");
+
+                timerInterval = setInterval(() => {
+                    if (!isGameActive) return;
+                    timeLeft--;
+                    totalSecondsSpent++;
+                    document.getElementById("timer-text").innerText = `${timeLeft}s`;
+                    
+                    if (timeLeft <= 0) {
+                        endGame(false, "Zaman Aşımı!");
+                    }
+                }, 1000);
+            } else {
+                timerBox.classList.remove("flex");
+                timerBox.classList.add("hidden");
+                
+                timerInterval = setInterval(() => {
+                    if (isGameActive) totalSecondsSpent++;
+                }, 1000);
+            }
+        }
+
+        function updateMoveText() {
+            const container = document.getElementById("move-text-container");
+            if (currentDifficulty === 'pro') {
+                container.innerHTML = `Kalan: <span class="font-bold text-rose-500">${10 - movesCount}</span>`;
+            } else {
+                container.innerHTML = `Hamle: <span class="font-bold text-orange-400">${movesCount}</span>`;
+            }
+        }
+
+        function inputDigit(digit) {
+            if (!isGameActive || currentGuess.length >= maxDigits) return;
+            if (currentGuess.includes(digit)) {
+                triggerCellShake();
+                return;
+            }
+            currentGuess.push(digit);
+            updateInputCells();
+        }
+
+        function deleteDigit() {
+            if (!isGameActive || currentGuess.length === 0) return;
+            currentGuess.pop();
+            updateInputCells();
+        }
+
+        function updateInputCells() {
+            for (let i = 0; i < maxDigits; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                if (currentGuess[i]) {
+                    cell.innerText = currentGuess[i];
+                    cell.classList.add("border-amber-500", "scale-105");
+                } else {
+                    cell.innerText = "";
+                    cell.classList.remove("border-amber-500", "scale-105");
+                }
+            }
+        }
+
+        // TAHMİNİ KONTROL ET VE GÖNDER (TİP HATASI DÜZELTİLDİ)
+        function submitGuess() {
+            if (!isGameActive || currentGuess.length !== maxDigits) {
+                triggerCellShake();
+                return;
+            }
+
+            const emptyState = document.getElementById("empty-state");
+            if (emptyState) emptyState.style.display = "none";
+
+            movesCount++;
+            updateMoveText();
+
+            const tahminStr = currentGuess.join("");
+            let artiSkor = 0;
+            let eksiSkor = 0;
+
+            // Karşılaştırma döngüsü
+            for (let i = 0; i < maxDigits; i++) {
+                if (tahminStr[i] === gizliSayi[i]) {
+                    artiSkor++;
+                } else if (gizliSayi.includes(tahminStr[i])) {
+                    eksiSkor++;
+                }
+            }
+
+            renderHistoryRow(tahminStr, artiSkor, eksiSkor);
+            
+            // KESİN KONTROL: Eğer artı skor basamak sayısına eşitse bildin!
+            if (artiSkor === maxDigits) {
+                endGame(true);
+                currentGuess = [];
+                updateInputCells();
+                return; // Fonksiyondan anında çık
+            } 
+            
+            if (currentDifficulty === 'pro' && movesCount >= 10) {
+                endGame(false, "Hamle Sınırı!");
+                currentGuess = [];
+                updateInputCells();
+                return;
+            }
+
+            if (currentDifficulty === 'pro') {
+                timeLeft = 60; // Pro modda her hamlede süreyi yenile
+                document.getElementById("timer-text").innerText = "60s";
+            }
+
+            currentGuess = [];
+            updateInputCells();
+        }
+
+        function renderHistoryRow(tahmin, arti, eksi) {
+            const container = document.getElementById("history-container");
+            const row = document.createElement("div");
+            row.className = "flex items-center justify-between bg-slate-800/40 border border-slate-800/80 p-2.5 rounded-2xl shadow-md animate-fade-in";
+
+            let cellsHtml = `<div class="flex gap-1.5">`;
+            for(let i=0; i<maxDigits; i++) {
+                cellsHtml += `<div class="w-9 h-9 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center font-mono font-bold text-lg text-slate-200">${tahmin[i]}</div>`;
+            }
+            cellsHtml += `</div>`;
+
+            let badgeHtml = `<div class="flex gap-1 font-mono text-sm font-black">`;
+            if (arti === 0 && eksi === 0) {
+                badgeHtml += `<span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700/50">0</span>`;
+            } else {
+                if (eksi > 0) badgeHtml += `<span class="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">-${eksi}</span>`;
+                if (arti > 0) badgeHtml += `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+${arti}</span>`;
+            }
+            badgeHtml += `</div>`;
+
+            row.innerHTML = cellsHtml + badgeHtml;
+            container.insertBefore(row, container.firstChild);
+        }
+
+        function endGame(isWin, reason = "") {
+            isGameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            lastResultWin = isWin;
+
+            const modalTitle = document.getElementById("modal-title");
+            const modalSubtitle = document.getElementById("modal-subtitle");
+            const iconContainer = document.getElementById("modal-icon-container");
+            const iconMain = document.getElementById("modal-icon-main");
+            const actionBtn = document.getElementById("modal-action-btn");
+            const yuanDetayNode = document.getElementById("modal-puan-detay");
+
+            document.getElementById("modal-diff-text").innerText = currentDifficulty;
+            document.getElementById("modal-diff-spec").innerText = currentDifficulty;
+            document.getElementById("modal-moves").innerText = movesCount;
+            document.getElementById("modal-total-time-spent").innerText = `${totalSecondsSpent}s`;
+
+            const diffText = document.getElementById("modal-diff-text");
+            diffText.className = "block font-bold uppercase " + 
+                (currentDifficulty === 'basic' ? 'text-emerald-400' : currentDifficulty === 'medium' ? 'text-amber-400' : 'text-rose-500');
+
+            if (isWin) {
+                // SÜRE VE TAHMİN MATEMATİKSEL PUAN HESABI
+                let tahminPuani = 160 - ((movesCount - 1) * 10);
+                if (tahminPuani < 0) tahminPuani = 0;
+
+                let tabanZamanHavuzu = 600; 
+                let harcananOnSaniye = Math.floor(totalSecondsSpent / 10);
+                let zamanPuani = Math.max(0, (tabanZamanHavuzu / 10) - harcananOnSaniye);
+
+                let toplamKazanilanPuan = tahminPuani + zamanPuani;
+
+                playerStats.score += toplamKazanilanPuan;
+                saveStats();
+
+                document.getElementById("puan-tahmin").innerText = `+${tahminPuani}`;
+                document.getElementById("puan-zaman").innerText = `+${zamanPuani}`;
+                document.getElementById("puan-toplam").innerText = `+${toplamKazanilanPuan} Puan`;
+                yuanDetayNode.style.display = "block";
+
+                modalTitle.innerText = "Seviye Tamamlandı!";
+                modalTitle.className = "text-2xl font-black text-emerald-400";
+                modalSubtitle.innerText = `Harika iş! Gizli sayı tam olarak şuydu: ${gizliSayi}`;
+                iconContainer.className = "w-16 h-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-3xl text-emerald-400";
+                iconMain.className = "fa-solid fa-circle-check";
+                actionBtn.innerHTML = `Sonraki Seviye <i class="fa-solid fa-forward ml-1 text-sm"></i>`;
+            } else {
+                yuanDetayNode.style.display = "none";
+                modalTitle.innerText = reason === "Zaman Aşımı!" ? "Süre Bitti!" : "Hamle Tükendi!";
+                modalTitle.className = "text-2xl font-black text-red-500";
+                modalSubtitle.innerText = reason === "Zaman Aşımı!" ? `60 saniye içinde hamle yapamadın. Sayı: ${gizliSayi}` : `10 hamle hakkın bitti. Gizli Sayı: ${gizliSayi}`;
+                iconContainer.className = "w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-3xl text-red-400";
+                iconMain.className = "fa-solid fa-triangle-exclamation";
+                actionBtn.innerHTML = `Tekrar Dene <i class="fa-solid fa-rotate-right ml-1 text-sm"></i>`;
+            }
+
+            document.getElementById("game-over-modal").classList.remove("hidden");
+        }
+
+        function nextLevelOrRestart() {
+            document.getElementById("game-over-modal").classList.add("hidden");
+            if (lastResultWin) {
+                if (playerStats.level < MAX_LEVELS) {
+                    playerStats.level++;
+                } else {
+                    playerStats.level = 1;
+                    alert("🏆 Muazzam! Oyundaki Tüm Seviyeleri Bitirdiniz!");
+                }
+                saveStats();
+            }
+            initGame();
+        }
+
+        function triggerCellShake() {
+            for (let i = 0; i < maxDigits; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                if(cell) {
+                    cell.classList.add("animate-ping");
+                    setTimeout(() => cell.classList.remove("animate-ping"), 200);
+                }
+            }
+        }
+
+        function attachKeyboardMemoryEvents() {
+            allowedPool.forEach(n => {
+                const key = document.getElementById(`key-${n}`);
+                if (!key) return;
+                key.clickState = 0;
+
+                key.addEventListener("contextmenu", (e) => e.preventDefault());
+                key.addEventListener("dblclick", () => {
+                    if (!isGameActive) return;
+                    key.clickState = (key.clickState + 1) % 3;
+                    key.className = "h-12 border rounded-xl font-bold text-xl active:scale-95 transition-all cursor-pointer";
+                    
+                    if (key.clickState === 1) {
+                        key.classList.add("bg-red-950/80", "text-red-300", "line-through", "border-red-700");
+                    } else if (key.clickState === 2) {
+                        key.classList.add("bg-emerald-700", "border-emerald-500", "text-white");
+                    } else {
+                        key.classList.add("bg-slate-800", "border-slate-700", "text-slate-100");
+                    }
+                });
+            });
+        }
+
+        window.onload = showStartMenu;
+    </script>
+</body>
+</html>
