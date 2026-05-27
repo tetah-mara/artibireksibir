@@ -1425,24 +1425,15 @@ const LabirentLogic = {
     },
 
     _generateSecret(schema) {
-        // redKeys kesinlikle OLMAMALI, greenKeys kesinlikle OLMALI
-        const forbidden = new Set(schema.redKeys || []);
-        const mustHave  = [...(schema.greenKeys || [])];
-
-        // Havuzdan yasaklı rakamları cikar
-        const pool = schema.allowedPool.filter(n => !forbidden.has(n));
-
-        // greenKeys sayida olmali -- bunlari once yerlestirelim
-        // Kalan slotlar icin mustHave disindaki rakamlardan sec
-        const freePool  = pool.filter(n => !mustHave.includes(n));
         const digits    = schema.digits;
+        const forbidden = new Set(schema.redKeys   || []);
+        const mustHave  = new Set(schema.greenKeys || []);
+        const openIdxs  = new Set(schema.openCells || []);
 
-        if (mustHave.length > digits) {
-            console.warn("[Labirent] greenKeys sayisi digits'ten buyuk!");
-            return pool.slice(0, digits).join("");
-        }
+        // Havuz: yasakli rakamlari cikar
+        const safePool = schema.allowedPool.filter(n => !forbidden.has(n));
 
-        // Rastgele siralama yardimcisi
+        // Fisher-Yates shuffle
         const shuffle = arr => {
             const a = [...arr];
             for (let i = a.length - 1; i > 0; i--) {
@@ -1452,12 +1443,24 @@ const LabirentLogic = {
             return a;
         };
 
-        // Kalan slot sayisi
-        const remaining = digits - mustHave.length;
-        const fillers   = shuffle(freePool).slice(0, remaining);
-        const combined  = shuffle([...mustHave, ...fillers]);
+        // Maksimum 300 deneme -- tum kurallara uyan bir sayi bul
+        for (let attempt = 0; attempt < 300; attempt++) {
+            const shuffled = shuffle(safePool);
+            const result   = shuffled.slice(0, digits);
 
-        return combined.join("");
+            // Kural 1: mustHave'daki her rakam sonucta olmali
+            if (![...mustHave].every(n => result.includes(n))) continue;
+
+            // Kural 2: Acik hucrelerdeki rakamlar forbidden olmamali
+            const openFail = [...openIdxs].some(idx => forbidden.has(result[idx]));
+            if (openFail) continue;
+
+            return result.join("");
+        }
+
+        // Fallback (neredeyse hic gelmez)
+        console.warn("[Labirent] Fallback: uygun sayi uretildi");
+        return shuffle(safePool).slice(0, digits).join("");
     },
 
     _buildLabElements(schema) {
