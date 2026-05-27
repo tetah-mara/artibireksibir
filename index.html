@@ -376,6 +376,33 @@
         <button id="filter-opp-btn" class="py-1 rounded-lg text-center text-slate-400 transition-all cursor-pointer">RAKİP</button>
     </div>
 
+    <!-- ── PVP REACTION BAR ── -->
+    <div id="pvp-reaction-bar"
+         class="u-hidden flex items-center gap-2 px-1 shrink-0">
+
+        <!-- Toggle butonu -->
+        <button id="btn-reaction-toggle"
+                class="shrink-0 px-2.5 py-1.5 rounded-xl text-base border transition-all cursor-pointer active:scale-90"
+                style="background-color: var(--bg-card); border-color: var(--border-color);"
+                title="Reaksiyon Gönder">
+            💬
+        </button>
+
+        <!-- Reaksiyon butonları (başta gizli) -->
+        <div id="reaction-buttons-panel"
+             class="u-hidden flex gap-1.5 flex-wrap items-center">
+            <button data-reaction="hah"  class="reaction-btn text-[11px] font-bold px-2.5 py-1.5 rounded-xl border active:scale-90 transition-all cursor-pointer bg-rose-500/10 border-rose-500/30 text-rose-300">Hah!</button>
+            <button data-reaction="down" class="reaction-btn text-[11px] font-bold px-2.5 py-1.5 rounded-xl border active:scale-90 transition-all cursor-pointer bg-indigo-500/10 border-indigo-500/30 text-indigo-300">Down!</button>
+            <button data-reaction="iyi"  class="reaction-btn text-[11px] font-bold px-2.5 py-1.5 rounded-xl border active:scale-90 transition-all cursor-pointer bg-emerald-500/10 border-emerald-500/30 text-emerald-300">İyisinn!</button>
+            <button data-reaction="hey"  class="reaction-btn text-[11px] font-bold px-2.5 py-1.5 rounded-xl border active:scale-90 transition-all cursor-pointer bg-amber-500/10 border-amber-500/30 text-amber-300">Hey!</button>
+        </div>
+
+        <!-- Gelen reaksiyon göstergesi -->
+        <div id="incoming-reaction-bubble"
+             class="u-hidden ml-auto shrink-0 px-3 py-1.5 rounded-2xl text-xs font-black font-mono border border-violet-500/40 bg-violet-500/10 text-violet-300 whitespace-nowrap">
+        </div>
+    </div>
+
     <!-- ── HISTORY ── -->
     <main id="history-container" class="flex-1 my-2 overflow-y-auto space-y-2.5 pr-0.5 min-h-0"></main>
 
@@ -954,6 +981,22 @@ function fbBindRoomListener() {
             GameLogic.endPvP(data);
         }
 
+        // Karşı tarafın reaksiyonu
+        if (data.reaction) {
+            const parts = data.reaction.split(":");
+            if (parts.length === 3) {
+                const [key, uid, ts] = parts;
+                // Sadece rakibin gönderdiği yeni reaksiyonları göster
+                if (uid !== playerStats.uid) {
+                    const lastTs = gameState._lastReactionTs || 0;
+                    if (Number(ts) > lastTs) {
+                        gameState._lastReactionTs = Number(ts);
+                        UI.showIncomingReaction(key);
+                    }
+                }
+            }
+        }
+
     }, (err) => {
         console.error("[Firebase] Oda dinleyici hatası:", err);
         UI.showError("Bağlantı kesildi. Menüye dönülüyor...");
@@ -982,6 +1025,17 @@ function _processIncomingGuess(data) {
 
     if (data.turn === gameState.myRole && gameState.pvpTimeMode === "timed") {
         GameLogic.setupTimer();
+    }
+}
+
+async function fbSendReaction(reactionKey) {
+    if (!firebaseRefs.roomRef || !gameState.isActive) return;
+    try {
+        await firebaseRefs.roomRef.update({
+            reaction: `${reactionKey}:${playerStats.uid}:${Date.now()}`
+        });
+    } catch (err) {
+        console.warn("[Firebase] Reaction gönderilemedi:", err);
     }
 }
 
@@ -1039,6 +1093,10 @@ const GameLogic = {
         UI.modal.hide("start-menu-modal");
         document.getElementById("normal-score-badge").classList.add("u-hidden");
         document.getElementById("pvp-filter-bar").classList.remove("u-hidden");
+        document.getElementById("pvp-reaction-bar").classList.remove("u-hidden");
+        document.getElementById("reaction-buttons-panel").classList.add("u-hidden");
+        document.getElementById("btn-reaction-toggle").style.opacity = "1";
+        gameState._lastReactionTs = 0;
         this.changeHistoryFilter("all");
 
         document.getElementById("tactic-info-text").textContent = "⚔️ Online Düello Modu. Joker kullanımı serbesttir!";
@@ -1190,26 +1248,26 @@ const GameLogic = {
                 seviyePuani = 0;
 
             } else if (diff === "medium") {
-                // Medium: hamle bazlı puan, seviye çarpanı YOK
-                // Maks 200 → her ekstra hamlede -15, minimum 20
-                tahminPuani = Math.max(20, 200 - ((moves - 1) * 15));
-                // Zaman bonusu: 60 saniyenin altındaysa bonus
-                zamanPuani  = secs < 60  ? 50 :
-                              secs < 120 ? 25 :
-                              secs < 180 ? 10 : 0;
+                // Medium: hamle bazlı puan, zorluk çarpanı YOK
+                // Puan = (MaksHamle - KullanilanHamle) × 10, min 10
+                const cfg   = getRankConfig(level);
+                tahminPuani = Math.max(10, (cfg.maxMoves - moves) * 10);
+                zamanPuani  = 0;
                 seviyePuani = 0;
 
             } else if (diff === "pro") {
-                // Pro: hamle bazlı puan + zaman bonusu + seviye çarpanı
-                // Temel: maks 300, her hamlede -20
-                const base  = Math.max(50, 300 - ((moves - 1) * 20));
-                // Zaman bonusu (pro'da süre kısıtlı, her saniye değerli)
-                const cfg   = getRankConfig(level);
-                const ratio = Math.max(0, 1 - (secs / cfg.duration));
-                tahminPuani = base;
-                zamanPuani  = Math.round(ratio * 150);
-                // Seviye çarpanı: level * 5 (level 1=5p, level 10=50p ek bonus)
-                seviyePuani = level * 5;
+                // Pro: Puan = (MaksHamle - KullanilanHamle) × 10
+                //           + (KalanSüre × 2) × ZorlukCarpani
+                // ZorlukCarpani = level (yüksek seviye = yüksek puan)
+                const cfg        = getRankConfig(level);
+                const kalanHamle = Math.max(0, cfg.maxMoves - moves);
+                const kalanSure  = Math.max(0, gameState.timeLeft);
+                tahminPuani = kalanHamle * 10;
+                zamanPuani  = kalanSure * 2;
+                seviyePuani = (tahminPuani + zamanPuani) * level;
+                // Toplam = tahmin + zaman + seviye bonusu
+                // Minimum 10 puan (kazandıysa sıfır olmasın)
+                tahminPuani = Math.max(10, tahminPuani);
             }
 
             const toplam = tahminPuani + zamanPuani + seviyePuani;
@@ -1430,6 +1488,7 @@ const UI = {
         this.modal.show("start-menu-modal");
         this.modal.hide("pvp-filter-bar");
         this.modal.hide("pvp-setup-modal");
+        this.modal.hide("pvp-reaction-bar");
 
         timers.clear();
         firebaseRefs.detachRoom();
@@ -1872,7 +1931,24 @@ const UI = {
         }
     },
 
-    showError(msg) { alert(msg); }
+    showError(msg) { alert(msg); },
+
+    showIncomingReaction(key) {
+        const map = {
+            hah:  "Hah! Loser 😂",
+            down: "Yat Aşağı! 👇",
+            iyi:  "İyisinn! 🔥",
+            hey:  "Selam 👋"
+        };
+        const bubble = document.getElementById("incoming-reaction-bubble");
+        if (!bubble || !map[key]) return;
+        bubble.textContent = "⚔️ " + map[key];
+        bubble.classList.remove("u-hidden");
+        clearTimeout(bubble._hideTimer);
+        bubble._hideTimer = setTimeout(() => {
+            bubble.classList.add("u-hidden");
+        }, 3500);
+    }
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1941,6 +2017,42 @@ function bindEvents() {
     // Game Over + Celebration
     document.getElementById("btn-next-level").addEventListener("click",       () => GameLogic.nextLevelOrRestart());
     document.getElementById("btn-close-celebration").addEventListener("click", () => UI.closeCelebration());
+
+    // PvP Reaction: toggle butonu
+    document.getElementById("btn-reaction-toggle").addEventListener("click", () => {
+        const panel  = document.getElementById("reaction-buttons-panel");
+        const toggle = document.getElementById("btn-reaction-toggle");
+        const isOpen = !panel.classList.contains("u-hidden");
+        if (isOpen) {
+            panel.classList.add("u-hidden");
+            toggle.style.opacity = "1";
+        } else {
+            panel.classList.remove("u-hidden");
+            toggle.style.opacity = "0.6";
+            // 4 saniye sonra otomatik kapat
+            clearTimeout(toggle._closeTimer);
+            toggle._closeTimer = setTimeout(() => {
+                panel.classList.add("u-hidden");
+                toggle.style.opacity = "1";
+            }, 4000);
+        }
+    });
+
+    // PvP Reaction: buton tıklamaları (event delegation)
+    document.getElementById("reaction-buttons-panel").addEventListener("click", (e) => {
+        const btn = e.target.closest(".reaction-btn");
+        if (!btn) return;
+        const key = btn.dataset.reaction;
+        if (!key) return;
+        fbSendReaction(key);
+        // Paneli kapat
+        document.getElementById("reaction-buttons-panel").classList.add("u-hidden");
+        document.getElementById("btn-reaction-toggle").style.opacity = "1";
+        clearTimeout(document.getElementById("btn-reaction-toggle")._closeTimer);
+        // Gönderim feedback
+        btn.style.transform = "scale(0.85)";
+        setTimeout(() => btn.style.transform = "", 300);
+    });
 }
 
 /* ═══════════════════════════════════════════════════════════════
