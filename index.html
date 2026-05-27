@@ -529,12 +529,12 @@ const PVP_TIMEOUT = 75; // seconds
 
 /** Seviye → Unvan konfigürasyonu */
 function getRankConfig(level) {
-    if      (level >= 21) return { name: "Tetah Mara",  isImg: true,  file: "tetah_mara.jpg",  quote: "In for a penny, in for a pound.",                                        maxMoves: 11, duration: 60  };
-    else if (level >= 13) return { name: "Öklid",       isImg: true,  file: "OKLID.jpg",        quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.",    maxMoves: 11, duration: 75  };
-    else if (level >= 8)  return { name: "Da Vinci",    isImg: true,  file: "davinci.jpg",      quote: "Kurguladığın her şey, doğanın şifrelerinde zaten gizlidir.",             maxMoves: 19, duration: 75  };
-    else if (level >= 5)  return { name: "Einstein",    isImg: true,  file: "EINSTEIN.jpg",     quote: "Hayal gücü bilgiden daha önemlidir, çünkü bilgi sınırlıdır.",           maxMoves: 19, duration: 90  };
-    else if (level >= 3)  return { name: "Marie Curie", isImg: true,  file: "mariecurie.jpg",   quote: "Hayatta hiçbir şeyden korkmayın, sadece onları anlamaya çalışın.",      maxMoves: 32, duration: 90  };
-    else if (level >= 2)  return { name: "Fibonacci",   isImg: true,  file: "fibonacci.jpg",    quote: "Sayılar evrenin kalbidir ve her adım bir öncekinin mirasıdır.",          maxMoves: 32, duration: 120 };
+    if      (level >= 21) return { name: "Tetah Mara",  isImg: true,  file: "tetah_mara.png",  quote: "In for a penny, in for a pound.",                                        maxMoves: 11, duration: 60  };
+    else if (level >= 13) return { name: "Öklid",       isImg: true,  file: "oklid.png",        quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.",    maxMoves: 11, duration: 75  };
+    else if (level >= 8)  return { name: "Da Vinci",    isImg: true,  file: "davinci.png",      quote: "Kurguladığın her şey, doğanın şifrelerinde zaten gizlidir.",             maxMoves: 19, duration: 75  };
+    else if (level >= 5)  return { name: "Einstein",    isImg: true,  file: "einstein.png",     quote: "Hayal gücü bilgiden daha önemlidir, çünkü bilgi sınırlıdır.",           maxMoves: 19, duration: 90  };
+    else if (level >= 3)  return { name: "Marie Curie", isImg: true,  file: "curie.png",   quote: "Hayatta hiçbir şeyden korkmayın, sadece onları anlamaya çalışın.",      maxMoves: 32, duration: 90  };
+    else if (level >= 2)  return { name: "Fibonacci",   isImg: true,  file: "fibonacci.png",    quote: "Sayılar evrenin kalbidir ve her adım bir öncekinin mirasıdır.",          maxMoves: 32, duration: 120 };
     else                  return { name: "Çömez",        isImg: false, emoji: "👤",              quote: "Sayılar alemine hoş geldin. Yolun uzun, sabırlı ol!",                  maxMoves: 53, duration: 200 };
 }
 
