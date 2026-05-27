@@ -215,6 +215,15 @@
                     <div><span class="block text-rose-500 font-bold text-xs">Pro Mod (Dinamik Zorluk)</span><span id="pro-desc-text" class="text-[9px] text-rose-300">-</span></div>
                     <i class="fa-solid fa-fire text-rose-500 text-sm"></i>
                 </button>
+                <button id="btn-mode-labirent"
+                        class="w-full text-left bg-gradient-to-r from-emerald-900/60 to-teal-900/60 hover:from-emerald-800/60 hover:to-teal-800/60 p-3 rounded-xl border border-emerald-800/40 flex justify-between items-center transition-all cursor-pointer text-white">
+                    <div>
+                        <span class="block text-emerald-400 font-bold text-xs">🧩 Mantık Labirenti</span>
+                        <span class="text-[9px] text-emerald-300/70">10 Bölümlük Macera — İpuçlu Sistem</span>
+                    </div>
+                    <i class="fa-solid fa-map text-emerald-400 text-sm"></i>
+                </button>
+
                 <div class="pt-2">
                     <span class="text-[10px] uppercase font-bold text-slate-500 font-mono tracking-wider px-1">Çevrimiçi Kapışma</span>
                     <button id="btn-open-pvp-menu"
@@ -365,6 +374,12 @@
             <span class="block font-bold">🎯 Aç <span id="stok-basamak" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
             <span class="font-mono text-emerald-500 font-bold">1000 P</span>
         </button>
+        <button id="btn-joker-zamanbuk"
+                class="flex-1 py-1.5 px-1 rounded-xl text-center active:scale-95 transition-all cursor-pointer"
+                style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+            <span class="block font-bold">⏳ +30s <span id="stok-zamanbuk" class="text-[9px] text-slate-400 font-mono">(0)</span></span>
+            <span class="font-mono text-cyan-400 font-bold">25 P</span>
+        </button>
     </div>
 
     <!-- ── PVP FILTER BAR ── -->
@@ -490,6 +505,51 @@
         </div>
     </div>
 
+    <!-- ── MODAL: Mantık Labirenti ── -->
+    <div id="labirent-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/98 backdrop-blur-2xl flex flex-col z-50">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
+            <button id="btn-labirent-quit"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1"
+                    style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);">
+                <i class="fa-solid fa-arrow-left text-[9px]"></i> Menü
+            </button>
+            <div class="text-center">
+                <div class="text-xs font-black text-emerald-400 font-mono">🧩 MANTIK LABİRENTİ</div>
+                <div id="lab-level-badge" class="text-[10px] text-slate-400 font-mono">Bölüm 1 / 10</div>
+            </div>
+            <div class="text-right font-mono text-[10px]">
+                <div id="lab-moves-badge" class="text-amber-400 font-bold">Hamle: 0</div>
+                <div id="lab-hint-badge" class="text-emerald-400 font-bold">İpucu: -</div>
+            </div>
+        </div>
+
+        <!-- Bölüm Tanıtımı (aç/kapa) -->
+        <div id="lab-intro-panel"
+             class="mx-4 mt-3 p-3 rounded-2xl border border-emerald-800/40 bg-emerald-900/10 text-xs font-mono text-emerald-300 shrink-0">
+            <div id="lab-intro-text" class="leading-relaxed"></div>
+            <button id="btn-lab-start-level"
+                    class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl transition-all cursor-pointer text-xs">
+                Bölümü Başlat ▶
+            </button>
+        </div>
+
+        <!-- Tarihçe -->
+        <div id="lab-history" class="flex-1 my-2 mx-4 overflow-y-auto space-y-2 min-h-0"></div>
+
+        <!-- Input hücreleri -->
+        <div class="shrink-0 px-4 pb-1">
+            <div id="lab-cells-wrapper" class="flex justify-center gap-3 mb-2"></div>
+        </div>
+
+        <!-- Klavye -->
+        <div class="shrink-0 px-4 pb-3">
+            <div id="lab-keyboard" class="space-y-2"></div>
+        </div>
+    </div>
+
     <!-- ── MODAL: Player Card ── -->
     <div id="player-card-modal"
          class="u-hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-40">
@@ -525,6 +585,7 @@
                     <div class="flex justify-between"><span>🔍 Ele Jokeri:</span><span id="card-ele-val" class="font-bold text-white">0 Adet</span></div>
                     <div class="flex justify-between"><span>💬 Bul Jokeri:</span><span id="card-fisilda-val" class="font-bold text-white">0 Adet</span></div>
                     <div class="flex justify-between"><span>🎯 Aç Jokeri:</span><span id="card-basamak-val" class="font-bold text-white">0 Adet</span></div>
+                    <div class="flex justify-between"><span>⏳ Zaman Büken:</span><span id="card-zamanbuk-val" class="font-bold text-white">0 Adet</span></div>
                 </div>
             </div>
             <p class="text-[9px] text-slate-500 italic">Tetah Mara Dev Team 2026</p>
@@ -536,10 +597,10 @@
 <script>
 "use strict";
 
-/* ═══════════════════════════════════════════════════════════════
-   §1 · CONFIG & CONSTANTS
-   Firebase config tek noktada — initFirebase içinde tekrar YOK.
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S1 * CONFIG & CONSTANTS
+   Firebase config tek noktada -- initFirebase içinde tekrar YOK.
+=============================================================== */
 const FIREBASE_CONFIG = {
     apiKey:            "AIzaSyDYRY3ZlQEjZUsZgBjgQ7487xmsFQWY_HI",
     authDomain:        "pvp-fafdd.firebaseapp.com",
@@ -554,7 +615,7 @@ const MAX_LEVELS  = 3024;
 const LS_KEY      = "plusMinus_playerStats";
 const PVP_TIMEOUT = 75; // seconds
 
-/** Seviye → Unvan konfigürasyonu */
+/** Seviye -> Unvan konfigürasyonu */
 function getRankConfig(level) {
     if      (level >= 21) return { name: "Tetah Mara",  isImg: true,  file: "tetah_mara.png",  quote: "In for a penny, in for a pound.",                                        maxMoves: 11, duration: 60  };
     else if (level >= 13) return { name: "Öklid",       isImg: true,  file: "oklid.png",        quote: "Geometrinin kraliyet yolu yoktur; zafere sadece adımlarla yürünür.",    maxMoves: 11, duration: 75  };
@@ -565,9 +626,9 @@ function getRankConfig(level) {
     else                  return { name: "Çömez",        isImg: false, emoji: "👤",              quote: "Sayılar alemine hoş geldin. Yolun uzun, sabırlı ol!",                  maxMoves: 53, duration: 200 };
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   §2 · STATE MANAGEMENT
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S2 * STATE MANAGEMENT
+=============================================================== */
 
 /** Kalıcı oyuncu verileri (cloud + localStorage) */
 let playerStats = {
@@ -577,7 +638,7 @@ let playerStats = {
     uid:               "",
     username:          "",
     googlePhoto:       "",
-    jokers:            { ele: 1, fisilda: 1, basamak: 1 },
+    jokers:            { ele: 1, fisilda: 1, basamak: 1, zamanbuk: 1 },
     hasSeenOnboarding: false
 };
 
@@ -585,7 +646,7 @@ let playerStats = {
 const gameState = {
     difficulty:          "medium",
     maxDigits:           4,
-    allowedPool:         [],   // string[] — tüm karşılaştırmalar string üzerinden
+    allowedPool:         [],   // string[] -- tüm karşılaştırmalar string üzerinden
     currentGuess:        [],   // string[]
     secretNumber:        "",
     movesCount:          0,
@@ -602,7 +663,7 @@ const gameState = {
     localGuessesHistory: []
 };
 
-/** Firebase referansları — detachRoom() ile temiz kapatma */
+/** Firebase referansları -- detachRoom() ile temiz kapatma */
 const firebaseRefs = {
     db:      null,
     auth:    null,
@@ -626,6 +687,17 @@ const timers = {
 /** localStorage + Firestore'a yazar */
 function saveStats() {
     try {
+        // Defensive: jokers her zaman tam olsun
+        const jokerDefaults = { ele: 0, fisilda: 0, basamak: 0, zamanbuk: 0 };
+        if (!playerStats.jokers || typeof playerStats.jokers !== "object") {
+            playerStats.jokers = { ...jokerDefaults };
+        } else {
+            Object.keys(jokerDefaults).forEach(k => {
+                if (typeof playerStats.jokers[k] !== "number") {
+                    playerStats.jokers[k] = jokerDefaults[k];
+                }
+            });
+        }
         localStorage.setItem(LS_KEY, JSON.stringify(playerStats));
         if (firebaseRefs.db && playerStats.uid && playerStats.username) {
             firebaseRefs.db.ref("kullanicilar/" + playerStats.uid).set(playerStats);
@@ -635,9 +707,9 @@ function saveStats() {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   §3 · FIREBASE SERVICE (Network Layer)
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S3 * FIREBASE SERVICE (Network Layer)
+=============================================================== */
 
 /**
  * Firebase'i başlatır; config SADECE burada, tek sefer kullanılır.
@@ -668,9 +740,10 @@ function initFirebase() {
                         if (!playerStats.jokers || typeof playerStats.jokers !== "object") {
                             playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
                         }
-                        playerStats.jokers.ele     = playerStats.jokers.ele     ?? 1;
-                        playerStats.jokers.fisilda = playerStats.jokers.fisilda ?? 1;
-                        playerStats.jokers.basamak = playerStats.jokers.basamak ?? 1;
+                        playerStats.jokers.ele      = playerStats.jokers.ele      ?? 1;
+                        playerStats.jokers.fisilda  = playerStats.jokers.fisilda  ?? 1;
+                        playerStats.jokers.basamak  = playerStats.jokers.basamak  ?? 1;
+                        playerStats.jokers.zamanbuk = playerStats.jokers.zamanbuk ?? 1;
                         UI.modal.hide("auth-modal");
                         playerStats.hasSeenOnboarding
                             ? UI.showStartMenu()
@@ -829,7 +902,7 @@ async function fbLoadLeaderboard() {
                     ${userPhoto}
                     <div class="truncate">
                         <span class="font-bold truncate block ${u.uid === playerStats.uid ? "text-amber-400" : "text-slate-200"}">@${u.username}</span>
-                        <span class="text-[8px] text-slate-500">${rankName} · LVL ${u.level || 1}</span>
+                        <span class="text-[8px] text-slate-500">${rankName} * LVL ${u.level || 1}</span>
                     </div>
                 </div>
                 <div class="font-black text-emerald-400 shrink-0 ml-2">${(u.score || 0).toLocaleString()} P</div>`;
@@ -1005,12 +1078,19 @@ function fbBindRoomListener() {
 }
 
 function _processIncomingGuess(data) {
-    if (!data.lastGuessData) return;
+    if (!data.lastGuessData || typeof data.lastGuessData !== "string") return;
 
-    const parts = data.lastGuessData.split(":");
-    if (parts.length !== 3) return;
+    // Format: "tahmin:+A -B:uid" -- sonuc alanında boşluk olduğu için
+    // sadece ilk ve son ":" noktasından böl
+    const firstColon = data.lastGuessData.indexOf(":");
+    const lastColon  = data.lastGuessData.lastIndexOf(":");
+    if (firstColon === -1 || firstColon === lastColon) return;
 
-    const [gGuess, gRes, gUid] = parts;
+    const gGuess = data.lastGuessData.substring(0, firstColon);
+    const gRes   = data.lastGuessData.substring(firstColon + 1, lastColon);
+    const gUid   = data.lastGuessData.substring(lastColon + 1);
+
+    if (!gGuess || !gRes || !gUid) return;
     const uniqueId = `${gUid}_${gGuess}`;
 
     if (gameState.localGuessesHistory.some(x => x.id === uniqueId)) return;
@@ -1048,9 +1128,503 @@ async function fbQuitRoom() {
     firebaseRefs.detachRoom();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   §4 · GAME LOGIC CORE
-═══════════════════════════════════════════════════════════════ */
+
+/* ===============================================================
+   S4-LABİRENT * MANTIK LABİRENTİ -- Level Şemaları & Mantık
+   - 10 bölüm, zorluk kademeli artar
+   - openCells: hangi hücreler baştan açık (index 0-3)
+   - redKeys:   baştan kırmızı (elenmiş) rakamlar
+   - greenKeys: baştan yeşil (kesin var) rakamlar
+   - maxMoves:  bölüm hamle sınırı (0 = sınırsız)
+   - allowedPool: kullanılabilecek rakamlar
+   - digits: kaç basamak
+=============================================================== */
+
+const LABIRENT_LEVELS = [
+    {
+        // Bölüm 1 - Isınma: 3 basamak, 1-5 havuzu, 2 ipucu
+        chapter: 1, digits: 3, allowedPool: ["1","2","3","4","5"],
+        maxMoves: 0,
+        openCells: [],
+        redKeys:   ["4","5"],
+        greenKeys: [],
+        intro: "🧩 Bölüm 1: Başlangıç\n3 basamaklı, 1-5 havuzundan seç.\nGri rakamlar elenmiş -- onları kullanma!"
+    },
+    {
+        // Bölüm 2 - Yeşil ipucu var
+        chapter: 2, digits: 3, allowedPool: ["1","2","3","4","5","6"],
+        maxMoves: 0,
+        openCells: [],
+        redKeys:   ["5","6"],
+        greenKeys: ["2"],
+        intro: "🧩 Bölüm 2: İz Sürücü\nYeşil rakam gizli sayıda kesinlikle var.\nSırasını bul!"
+    },
+    {
+        // Bölüm 3 - İlk basamak açık
+        chapter: 3, digits: 3, allowedPool: ["1","2","3","4","5","6"],
+        maxMoves: 0,
+        openCells: [0],
+        redKeys:   ["4","6"],
+        greenKeys: [],
+        intro: "🧩 Bölüm 3: Şifre Kırıcı\nİlk basamak sana gösterildi.\nGeri kalanını çöz!"
+    },
+    {
+        // Bölüm 4 - 4 basamak, 1-7 havuzu
+        chapter: 4, digits: 4, allowedPool: ["1","2","3","4","5","6","7"],
+        maxMoves: 0,
+        openCells: [2],
+        redKeys:   ["6","7"],
+        greenKeys: ["3"],
+        intro: "🧩 Bölüm 4: Derinlik\n4 basamağa geçiyoruz!\n3. basamak açık, yeşil rakam var."
+    },
+    {
+        // Bölüm 5 - Hamle sınırı başlıyor (12 hamle)
+        chapter: 5, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8"],
+        maxMoves: 12,
+        openCells: [],
+        redKeys:   ["7","8"],
+        greenKeys: ["1","4"],
+        intro: "🧩 Bölüm 5: Baskı Altında\n⚠️ 12 hamle hakkın var!\n2 yeşil ipucu ile stratejik düşün."
+    },
+    {
+        // Bölüm 6 - 2 basamak açık ama hamle sınırı dar
+        chapter: 6, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8"],
+        maxMoves: 10,
+        openCells: [1, 3],
+        redKeys:   ["6","7","8"],
+        greenKeys: [],
+        intro: "🧩 Bölüm 6: Kıskaç\n2. ve 4. basamaklar açık.\nSadece 10 hamlen var -- dikkatli ol!"
+    },
+    {
+        // Bölüm 7 - Tam havuz, ipucu yok
+        chapter: 7, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8","9"],
+        maxMoves: 10,
+        openCells: [],
+        redKeys:   [],
+        greenKeys: [],
+        intro: "🧩 Bölüm 7: Karanlık\nHiçbir ipucu yok, tam havuz açık.\n10 hamleyle gizli sayıyı bul!"
+    },
+    {
+        // Bölüm 8 - Son basamak açık, 8 hamle
+        chapter: 8, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8","9"],
+        maxMoves: 8,
+        openCells: [3],
+        redKeys:   ["8","9"],
+        greenKeys: ["5"],
+        intro: "🧩 Bölüm 8: Deha Sınavı\nSon basamak açık, 8 hamle hakkın var.\nYeşil rakamın yerini doğru koy!"
+    },
+    {
+        // Bölüm 9 - İpuçsuz, 7 hamle
+        chapter: 9, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8","9"],
+        maxMoves: 7,
+        openCells: [],
+        redKeys:   [],
+        greenKeys: [],
+        intro: "🧩 Bölüm 9: Son Nefes\nİpucu yok, 7 hamle!\nBuraya kadar öğrendiklerini kullan."
+    },
+    {
+        // Bölüm 10 - Final: 5 hamle, tek yeşil
+        chapter: 10, digits: 4, allowedPool: ["1","2","3","4","5","6","7","8","9"],
+        maxMoves: 5,
+        openCells: [],
+        redKeys:   [],
+        greenKeys: ["7"],
+        intro: "🧩 Bölüm 10: GRANDFİNAL 🏆\nSadece 5 hamlen var.\nSayılar sana güveniyor -- çöz!"
+    }
+];
+
+/* Labirent Oyun Durumu */
+const labState = {
+    currentChapter: 0,   // 0-9 index
+    movesCount:     0,
+    secretNumber:   "",
+    isActive:       false,
+    completedAll:   false
+};
+
+/* -- Labirent Logic -- */
+const LabirentLogic = {
+
+    /** Labirent modunu başlat */
+    start() {
+        labState.currentChapter = 0;
+        labState.completedAll   = false;
+        UI.modal.hide("start-menu-modal");
+        UI.modal.show("labirent-modal");
+        this.loadChapter(0);
+    },
+
+    /** Bölümü yükle -- intro panelini göster */
+    loadChapter(idx) {
+        const schema = LABIRENT_LEVELS[idx];
+        labState.currentChapter = idx;
+        labState.movesCount     = 0;
+        labState.isActive       = false;
+
+        // Badge güncelle
+        const lvlBadge = document.getElementById("lab-level-badge");
+        if (lvlBadge) lvlBadge.textContent = `Bölüm ${schema.chapter} / 10`;
+
+        const movesBadge = document.getElementById("lab-moves-badge");
+        if (movesBadge) movesBadge.textContent = schema.maxMoves > 0
+            ? `Hamle: 0 / ${schema.maxMoves}`
+            : `Hamle: 0`;
+
+        const hintBadge = document.getElementById("lab-hint-badge");
+        if (hintBadge) {
+            const hints = schema.redKeys.length + schema.greenKeys.length + schema.openCells.length;
+            hintBadge.textContent = `İpucu: ${hints}`;
+        }
+
+        // Intro paneli
+        const introText = document.getElementById("lab-intro-text");
+        if (introText) introText.innerHTML = schema.intro.replace(/\n/g, "<br>");
+        const introPanel = document.getElementById("lab-intro-panel");
+        if (introPanel) introPanel.classList.remove("u-hidden");
+
+        // Tarihçeyi temizle
+        const labHist = document.getElementById("lab-history");
+        if (labHist) labHist.innerHTML = "";
+
+        // Klavye ve hücreleri hazırla (ama devre dışı)
+        this._buildLabElements(schema);
+    },
+
+    /** Bölümü fiilen başlat (intro'dan sonra) */
+    beginChapter() {
+        const schema = LABIRENT_LEVELS[labState.currentChapter];
+        labState.secretNumber = this._generateSecret(schema);
+        labState.isActive     = true;
+
+        console.log("🧩 Labirent Gizli Sayı:", labState.secretNumber);
+
+        // Intro panelini gizle
+        const introPanel = document.getElementById("lab-intro-panel");
+        if (introPanel) introPanel.classList.add("u-hidden");
+
+        // Açık hücreleri doldur
+        schema.openCells.forEach(idx => {
+            const cell = document.getElementById(`lab-cell-${idx}`);
+            if (cell) {
+                cell.textContent       = labState.secretNumber[idx];
+                cell.style.color       = "#34d399";
+                cell.style.borderColor = "#10b981";
+                cell.style.background  = "rgba(16,185,129,0.12)";
+            }
+        });
+
+        // Klavye ipuçlarını uygula
+        schema.redKeys.forEach(n   => _setLabKeyState(n, 1));
+        schema.greenKeys.forEach(n => _setLabKeyState(n, 2));
+
+        // Gamestate güncelle (joker fonksiyonları için)
+        gameState.maxDigits   = schema.digits;
+        gameState.allowedPool = schema.allowedPool;
+    },
+
+    /** Tahmin gönder */
+    submitGuess() {
+        if (!labState.isActive) return;
+        const schema = LABIRENT_LEVELS[labState.currentChapter];
+        const cells  = [];
+
+        for (let i = 0; i < schema.digits; i++) {
+            const cell = document.getElementById(`lab-cell-${i}`);
+            const val  = cell ? cell.dataset.input || cell.textContent.trim() : "";
+            cells.push(val);
+        }
+
+        if (cells.some(v => !v || v.length !== 1)) {
+            this._shakeLabCells(schema.digits);
+            return;
+        }
+
+        // Tekrar kontrolü
+        const inputSet = new Set(cells);
+        if (inputSet.size !== cells.length) {
+            this._shakeLabCells(schema.digits);
+            return;
+        }
+
+        labState.movesCount++;
+        const guessStr = cells.join("");
+        let plus = 0, minus = 0;
+        for (let i = 0; i < schema.digits; i++) {
+            if      (cells[i] === labState.secretNumber[i])     plus++;
+            else if (labState.secretNumber.includes(cells[i]))  minus++;
+        }
+
+        // Hamle badge
+        const movesBadge = document.getElementById("lab-moves-badge");
+        if (movesBadge) movesBadge.textContent = schema.maxMoves > 0
+            ? `Hamle: ${labState.movesCount} / ${schema.maxMoves}`
+            : `Hamle: ${labState.movesCount}`;
+
+        // Tarihçe satırı
+        this._addHistoryRow(guessStr, plus, minus, schema.digits);
+
+        // Input hücrelerini temizle (açık hücreler hariç)
+        for (let i = 0; i < schema.digits; i++) {
+            if (!schema.openCells.includes(i)) {
+                const cell = document.getElementById(`lab-cell-${i}`);
+                if (cell) {
+                    cell.textContent    = "";
+                    cell.dataset.input  = "";
+                    cell.style.borderColor = "var(--border-color)";
+                }
+            }
+        }
+        this._updateLabInputState(schema.digits);
+
+        // Kazanma
+        if (plus === schema.digits) {
+            labState.isActive = false;
+            setTimeout(() => this._winChapter(), 500);
+            return;
+        }
+
+        // Hamle sınırı
+        if (schema.maxMoves > 0 && labState.movesCount >= schema.maxMoves) {
+            labState.isActive = false;
+            setTimeout(() => this._loseChapter(), 400);
+        }
+    },
+
+    _winChapter() {
+        const schema  = LABIRENT_LEVELS[labState.currentChapter];
+        const bonus   = Math.max(50, (schema.maxMoves > 0 ? schema.maxMoves - labState.movesCount + 1 : 10) * schema.chapter * 15);
+        playerStats.score += bonus;
+        saveStats();
+
+        const isLast = labState.currentChapter === 9;
+        const msg    = isLast
+            ? `🏆 TUM LABiRENTi TAMAMLADIN!\n+${bonus} puan kazandin!\nEfsanevi basari!`
+            : `Bolum ${schema.chapter} Tamamlandi!\n+${bonus} puan!\nSonraki bolume hazir misin?`;
+
+        if (confirm(msg + (isLast ? "" : "\n\nSonraki bolume gec?"))) {
+            if (isLast) {
+                UI.showStartMenu();
+                UI.modal.hide("labirent-modal");
+            } else {
+                this.loadChapter(labState.currentChapter + 1);
+            }
+        } else {
+            UI.showStartMenu();
+            UI.modal.hide("labirent-modal");
+        }
+    },
+
+    _loseChapter() {
+        const schema = LABIRENT_LEVELS[labState.currentChapter];
+        if (confirm(`Bolum ${schema.chapter} basarisiz!\nGizli sayi: ${labState.secretNumber}\n\nTekrar dene?`)) {
+            this.loadChapter(labState.currentChapter);
+        } else {
+            UI.showStartMenu();
+            UI.modal.hide("labirent-modal");
+        }
+    },
+
+    _generateSecret(schema) {
+        const pool = [...schema.allowedPool];
+        let result = "";
+        for (let i = 0; i < schema.digits; i++) {
+            const idx = Math.floor(Math.random() * pool.length);
+            result += pool[idx];
+            pool.splice(idx, 1);
+        }
+        return result;
+    },
+
+    _buildLabElements(schema) {
+        // Hücreler
+        const wrapper = document.getElementById("lab-cells-wrapper");
+        if (!wrapper) return;
+        wrapper.innerHTML = "";
+        for (let i = 0; i < schema.digits; i++) {
+            const cell = document.createElement("div");
+            cell.id           = `lab-cell-${i}`;
+            cell.dataset.input = "";
+            cell.className    = "w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all";
+            cell.style.cssText = "background-color: var(--bg-card); border: 2px solid var(--border-color);";
+            wrapper.appendChild(cell);
+        }
+
+        // Klavye
+        const kb = document.getElementById("lab-keyboard");
+        if (!kb) return;
+        if (schema.digits === 3 && schema.allowedPool.length <= 6) {
+            kb.innerHTML = `
+                <div class="grid grid-cols-6 gap-1.5">
+                    ${schema.allowedPool.map(n => _labKeyBtn(n)).join("")}
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-0.5">
+                    <button id="lab-btn-del" class="h-11 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
+                    <button id="lab-btn-sub" class="h-11 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>
+                </div>`;
+        } else {
+            kb.innerHTML = `
+                <div class="grid grid-cols-5 gap-1.5">
+                    ${["1","2","3","4","5"].filter(n => schema.allowedPool.includes(n)).map(n => _labKeyBtn(n)).join("")}
+                </div>
+                <div class="grid grid-cols-6 gap-1.5">
+                    ${["6","7","8","9"].filter(n => schema.allowedPool.includes(n)).map(n => _labKeyBtn(n)).join("")}
+                    <button id="lab-btn-del" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all"><i class="fa-solid fa-delete-left text-base"></i></button>
+                    <button id="lab-btn-sub" class="h-12 bg-emerald-600 text-white rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-paper-plane text-base"></i></button>
+                </div>`;
+        }
+
+        this._bindLabControls(schema);
+    },
+
+    _bindLabControls(schema) {
+        const del = document.getElementById("lab-btn-del");
+        const sub = document.getElementById("lab-btn-sub");
+        if (del) del.onclick = (e) => { e.preventDefault(); this._labDelete(schema); };
+        if (sub) sub.onclick = (e) => { e.preventDefault(); this.submitGuess(); };
+
+        schema.allowedPool.forEach(n => {
+            const key = document.getElementById(`lab-key-${n}`);
+            if (!key) return;
+            key.clickState = 0;
+            let touchStartTime = 0, touchTimer = null, isLongPress = false;
+
+            key.ontouchstart = (e) => {
+                e.preventDefault();
+                isLongPress    = false;
+                touchStartTime = Date.now();
+                touchTimer     = setTimeout(() => {
+                    isLongPress = true;
+                    // Labirentte uzun basmada ipucu kilidi değiştir
+                    key.clickState = (key.clickState + 1) % 3;
+                    _setLabKeyState(n, key.clickState);
+                    if (navigator.vibrate) navigator.vibrate(40);
+                }, 400);
+            };
+            key.ontouchend = (e) => {
+                e.preventDefault();
+                clearTimeout(touchTimer);
+                if (!isLongPress && Date.now() - touchStartTime < 400) {
+                    this._labInput(n, schema);
+                }
+            };
+            key.onclick = () => {
+                if (!("ontouchstart" in window)) this._labInput(n, schema);
+            };
+        });
+    },
+
+    _labInput(digit, schema) {
+        if (!labState.isActive) return;
+        // Açık hücreleri atla, sıradaki boş hücreyi bul
+        let targetIdx = -1;
+        for (let i = 0; i < schema.digits; i++) {
+            if (schema.openCells.includes(i)) continue;
+            const cell = document.getElementById(`lab-cell-${i}`);
+            if (cell && !cell.dataset.input) { targetIdx = i; break; }
+        }
+        if (targetIdx === -1) return;
+
+        // Aynı rakam kontrolü
+        const allInputs = [];
+        for (let i = 0; i < schema.digits; i++) {
+            const c = document.getElementById(`lab-cell-${i}`);
+            if (c) allInputs.push(c.dataset.input || (schema.openCells.includes(i) ? labState.secretNumber[i] : ""));
+        }
+        if (allInputs.includes(digit)) { this._shakeLabCells(schema.digits); return; }
+
+        const cell = document.getElementById(`lab-cell-${targetIdx}`);
+        if (!cell) return;
+        cell.textContent      = digit;
+        cell.dataset.input    = digit;
+        cell.style.borderColor = "#f59e0b";
+        this._updateLabInputState(schema.digits);
+    },
+
+    _labDelete(schema) {
+        if (!labState.isActive) return;
+        // Son doldurulan açık-olmayan hücreyi temizle
+        for (let i = schema.digits - 1; i >= 0; i--) {
+            if (schema.openCells.includes(i)) continue;
+            const cell = document.getElementById(`lab-cell-${i}`);
+            if (cell && cell.dataset.input) {
+                cell.textContent      = "";
+                cell.dataset.input    = "";
+                cell.style.borderColor = "var(--border-color)";
+                this._updateLabInputState(schema.digits);
+                return;
+            }
+        }
+    },
+
+    _updateLabInputState(digits) {
+        // sub butonunu aktif/pasif yap
+        const sub = document.getElementById("lab-btn-sub");
+        if (!sub) return;
+        let filled = 0;
+        for (let i = 0; i < digits; i++) {
+            const c = document.getElementById(`lab-cell-${i}`);
+            if (c && (c.dataset.input || c.textContent.trim())) filled++;
+        }
+        sub.style.opacity = filled === digits ? "1" : "0.4";
+    },
+
+    _shakeLabCells(digits) {
+        for (let i = 0; i < digits; i++) {
+            const cell = document.getElementById(`lab-cell-${i}`);
+            if (!cell) continue;
+            cell.classList.add("animate-pulse");
+            setTimeout(() => cell.classList.remove("animate-pulse"), 200);
+        }
+    },
+
+    _addHistoryRow(tahmin, arti, eksi, digits) {
+        const container = document.getElementById("lab-history");
+        if (!container) return;
+
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2 rounded-2xl border modal-enter";
+        row.style.backgroundColor = "var(--bg-card)";
+        row.style.borderColor     = arti === digits ? "#10b981" : "var(--border-color)";
+
+        let cellsHtml = `<div class="flex gap-1">`;
+        for (let i = 0; i < digits; i++) {
+            cellsHtml += `<div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-sm"
+                style="background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">${tahmin[i]}</div>`;
+        }
+        cellsHtml += `</div>`;
+
+        let badgeHtml = `<div class="flex gap-1 font-mono text-xs font-black">`;
+        if (arti === 0 && eksi === 0) {
+            badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-400 border border-slate-500/20">0</span>`;
+        } else {
+            if (eksi > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/20">-${eksi}</span>`;
+            if (arti > 0) badgeHtml += `<span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+${arti}</span>`;
+        }
+        badgeHtml += `</div>`;
+
+        row.innerHTML = cellsHtml + badgeHtml;
+        container.insertBefore(row, container.firstChild);
+    }
+};
+
+/* Labirent klavye yardımcıları */
+function _labKeyBtn(n) {
+    return `<button id="lab-key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`;
+}
+
+function _setLabKeyState(digit, state) {
+    const key = document.getElementById(`lab-key-${digit}`);
+    if (!key) return;
+    key.clickState = state;
+    key.classList.remove("key-neutral", "key-red", "key-green");
+    if      (state === 1) key.classList.add("key-red");
+    else if (state === 2) key.classList.add("key-green");
+    else                  key.classList.add("key-neutral");
+}
+
+/* ===============================================================
+   S4 * GAME LOGIC CORE
+=============================================================== */
 const GameLogic = {
 
     startSinglePlayer(diff) {
@@ -1107,13 +1681,14 @@ const GameLogic = {
     },
 
     initRound() {
-        // jokers nesnesi cloud'dan bozuk gelebilir — güvenli hale getir
+        // jokers nesnesi cloud'dan bozuk gelebilir -- güvenli hale getir
         if (!playerStats.jokers || typeof playerStats.jokers !== "object") {
             playerStats.jokers = { ele: 1, fisilda: 1, basamak: 1 };
         }
         playerStats.jokers.ele      = playerStats.jokers.ele      ?? 1;
         playerStats.jokers.fisilda  = playerStats.jokers.fisilda  ?? 1;
         playerStats.jokers.basamak  = playerStats.jokers.basamak  ?? 1;
+        playerStats.jokers.zamanbuk = playerStats.jokers.zamanbuk ?? 1;
 
         UI.updateMenuData();
         UI.buildGameElements();
@@ -1141,7 +1716,7 @@ const GameLogic = {
         this.setupTimer();
     },
 
-    /** Tekrarsız rastgele gizli sayı üretir — tüm çıktılar string */
+    /** Tekrarsız rastgele gizli sayı üretir -- tüm çıktılar string */
     generateSecret() {
         const pool = [...gameState.allowedPool];
         let result = "";
@@ -1242,7 +1817,7 @@ const GameLogic = {
             let seviyePuani = 0;
 
             if (diff === "basic") {
-                // Basic: sıfır puan — sadece level/joker kazanılır
+                // Basic: sıfır puan -- sadece level/joker kazanılır
                 tahminPuani = 0;
                 zamanPuani  = 0;
                 seviyePuani = 0;
@@ -1312,6 +1887,7 @@ const GameLogic = {
             playerStats.jokers.ele++;
             playerStats.jokers.fisilda++;
             playerStats.jokers.basamak++;
+            playerStats.jokers.zamanbuk++;
             saveStats();
 
             const newConfig = getRankConfig(playerStats.level);
@@ -1389,7 +1965,7 @@ const GameLogic = {
 
     useJoker(type) {
         if (!gameState.isActive) return;
-        const costs = { ele: 500, fisilda: 750, basamak: 1000 };
+        const costs = { ele: 500, fisilda: 750, basamak: 1000, zamanbuk: 25 };
 
         if (playerStats.jokers[type] > 0) {
             playerStats.jokers[type]--;
@@ -1434,13 +2010,41 @@ const GameLogic = {
             const names = ["1. Basamak", "2. Basamak", "3. Basamak", "4. Basamak"];
             _setKeyState(digit, 2);
             alert(`TAM İSABET! 👉 ${names[targetIdx]} rakamı: "${digit}"`);
+
+        } else if (type === "zamanbuk") {
+            // Sadece süreli modlarda çalışır
+            const isProTimed  = !gameState.isPvP && gameState.difficulty === "pro";
+            const isPvPTimed  = gameState.isPvP  && gameState.pvpTimeMode === "timed";
+
+            if (!isProTimed && !isPvPTimed) {
+                UI.showError("⏳ Zaman Büken sadece süreli modlarda kullanılabilir!");
+                // Harcandıysa geri ver
+                playerStats.jokers.zamanbuk++;
+                if (playerStats.score < costs.zamanbuk) {
+                    playerStats.score += costs.zamanbuk;
+                }
+                saveStats();
+                UI.updateMenuData();
+                return;
+            }
+
+            // +30 saniye ekle
+            gameState.timeLeft += 30;
+            const timerEl = document.getElementById("timer-text");
+            if (timerEl) timerEl.textContent = `${gameState.timeLeft}s`;
+            // Kısa görsel feedback
+            const timerBox = document.getElementById("timer-box");
+            if (timerBox) {
+                timerBox.style.borderColor = "#06b6d4";
+                setTimeout(() => { timerBox.style.borderColor = ""; }, 1200);
+            }
         }
     }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   §4-HELPERS · Klavye yardımcıları
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S4-HELPERS * Klavye yardımcıları
+=============================================================== */
 function _setKeyState(digit, state) {
     const key = document.getElementById(`key-${digit}`);
     if (!key) return;
@@ -1471,9 +2075,9 @@ function setPvPTimeMode(mode) {
     timedBtn.className    = mode === "timed"    ? active : inactive;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   §5 · UI / RENDER CONTROLLER
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S5 * UI / RENDER CONTROLLER
+=============================================================== */
 const UI = {
     el(id) { return document.getElementById(id); },
 
@@ -1489,6 +2093,7 @@ const UI = {
         this.modal.hide("pvp-filter-bar");
         this.modal.hide("pvp-setup-modal");
         this.modal.hide("pvp-reaction-bar");
+        this.modal.hide("labirent-modal");
 
         timers.clear();
         firebaseRefs.detachRoom();
@@ -1522,6 +2127,8 @@ const UI = {
         this.el("stok-ele").textContent        = `(${playerStats.jokers.ele})`;
         this.el("stok-fisilda").textContent    = `(${playerStats.jokers.fisilda})`;
         this.el("stok-basamak").textContent    = `(${playerStats.jokers.basamak})`;
+        const stokZB = this.el("stok-zamanbuk");
+        if (stokZB) stokZB.textContent = `(${playerStats.jokers.zamanbuk ?? 0})`;
         this.el("menu-rank-name").textContent  = config.name;
         this.el("top-rank-name").textContent   = config.name;
         this.el("pro-desc-text").textContent   = `Maks ${config.maxMoves} Hamle / ${config.duration}s Süre!`;
@@ -1560,9 +2167,11 @@ const UI = {
         this.el("card-rank-name").textContent  = config.name;
         this.el("card-level-val").textContent  = playerStats.level;
         this.el("card-score-val").textContent  = playerStats.score;
-        this.el("card-ele-val").textContent    = `${playerStats.jokers.ele} Adet`;
-        this.el("card-fisilda-val").textContent = `${playerStats.jokers.fisilda} Adet`;
-        this.el("card-basamak-val").textContent = `${playerStats.jokers.basamak} Adet`;
+        this.el("card-ele-val").textContent      = `${playerStats.jokers.ele} Adet`;
+        this.el("card-fisilda-val").textContent   = `${playerStats.jokers.fisilda} Adet`;
+        this.el("card-basamak-val").textContent   = `${playerStats.jokers.basamak} Adet`;
+        const cardZB = this.el("card-zamanbuk-val");
+        if (cardZB) cardZB.textContent = `${playerStats.jokers.zamanbuk ?? 0} Adet`;
         this._applyAvatarToTargets(config, [{ emoji: "card-avatar-emoji", img: "card-avatar-img" }]);
         this.modal.show("player-card-modal");
     },
@@ -1951,10 +2560,10 @@ const UI = {
     }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   §6 · EVENT BINDINGS
-   window "load" sonrası çalışır → tüm DOM hazır, loading gizli.
-═══════════════════════════════════════════════════════════════ */
+/* ===============================================================
+   S6 * EVENT BINDINGS
+   window "load" sonrası çalışır -> tüm DOM hazır, loading gizli.
+=============================================================== */
 function bindEvents() {
     // Auth
     document.getElementById("btn-google-login").addEventListener("click", handleGoogleLogin);
@@ -2005,14 +2614,40 @@ function bindEvents() {
     document.getElementById("player-card-inner").addEventListener("click", (e) => e.stopPropagation());
 
     // Jokers
-    document.getElementById("btn-joker-ele").addEventListener("click",     () => GameLogic.useJoker("ele"));
-    document.getElementById("btn-joker-fisilda").addEventListener("click", () => GameLogic.useJoker("fisilda"));
-    document.getElementById("btn-joker-basamak").addEventListener("click", () => GameLogic.useJoker("basamak"));
+    // Joker butonları (null-safe)
+    [
+        ["btn-joker-ele",      "ele"],
+        ["btn-joker-fisilda",  "fisilda"],
+        ["btn-joker-basamak",  "basamak"],
+        ["btn-joker-zamanbuk", "zamanbuk"]
+    ].forEach(([id, type]) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("click", () => GameLogic.useJoker(type));
+    });
 
-    // PvP Filter
-    document.getElementById("filter-all-btn").addEventListener("click", () => GameLogic.changeHistoryFilter("all"));
-    document.getElementById("filter-me-btn").addEventListener("click",  () => GameLogic.changeHistoryFilter("me"));
-    document.getElementById("filter-opp-btn").addEventListener("click", () => GameLogic.changeHistoryFilter("opp"));
+    // PvP Filter (null-safe)
+    [
+        ["filter-all-btn", "all"],
+        ["filter-me-btn",  "me"],
+        ["filter-opp-btn", "opp"]
+    ].forEach(([id, filter]) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("click", () => GameLogic.changeHistoryFilter(filter));
+    });
+
+    // Mantık Labirenti
+    const btnLabirent = document.getElementById("btn-mode-labirent");
+    if (btnLabirent) btnLabirent.addEventListener("click", () => LabirentLogic.start());
+
+    const btnLabQuit = document.getElementById("btn-labirent-quit");
+    if (btnLabQuit) btnLabQuit.addEventListener("click", () => {
+        labState.isActive = false;
+        UI.modal.hide("labirent-modal");
+        UI.showStartMenu();
+    });
+
+    const btnLabStart = document.getElementById("btn-lab-start-level");
+    if (btnLabStart) btnLabStart.addEventListener("click", () => LabirentLogic.beginChapter());
 
     // Game Over + Celebration
     document.getElementById("btn-next-level").addEventListener("click",       () => GameLogic.nextLevelOrRestart());
@@ -2055,11 +2690,11 @@ function bindEvents() {
     });
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ===============================================================
    ENTRY POINT
    DOM hazır olduktan sonra: önce event'ler bağlanır,
    ardından Firebase başlatılır (loading overlay orada kaldırılır).
-═══════════════════════════════════════════════════════════════ */
+=============================================================== */
 window.addEventListener("load", () => {
     bindEvents();
     initFirebase();
