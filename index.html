@@ -231,6 +231,11 @@
                         <div><span class="block font-black text-sm text-white">Online Düello (PvP)</span><span class="text-[9px] text-indigo-200">Canlı rakiplerle zamana karşı düello</span></div>
                         <i class="fa-solid fa-hand-fist text-white text-base animate-bounce"></i>
                     </button>
+                    <button id="btn-open-coop-menu"
+                            class="w-full mt-1.5 text-left bg-gradient-to-r from-cyan-700/80 to-teal-700/80 hover:from-cyan-600/80 hover:to-teal-600/80 p-3.5 rounded-xl flex justify-between items-center transition-all cursor-pointer text-white shadow-lg shadow-teal-950">
+                        <div><span class="block font-black text-sm text-white">Kolektif Zeka (Co-op)</span><span class="text-[9px] text-cyan-200">Arkadaşınla takım ol, birlikte çöz!</span></div>
+                        <i class="fa-solid fa-people-group text-white text-base"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -502,6 +507,141 @@
                     class="px-8 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold rounded-xl text-sm transition-all active:scale-95 cursor-pointer shadow-md">
                 Maceraya Devam Et <i class="fa-solid fa-chevron-right ml-1 text-xs"></i>
             </button>
+        </div>
+    </div>
+
+
+    <!-- == MODAL: Co-op Setup == -->
+    <div id="coop-setup-modal"
+         class="u-hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl space-y-5 modal-enter">
+
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span class="text-xs font-mono text-cyan-400 font-bold">
+                    <i class="fa-solid fa-people-group mr-1"></i> Kolektif Zeka Lobisi
+                </span>
+                <button id="btn-close-coop-menu" class="text-slate-500 hover:text-slate-300 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Başlangıç aksiyonları -->
+            <div id="coop-initial-actions" class="space-y-4">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono text-left leading-relaxed">
+                    <div class="text-cyan-400 font-bold mb-1">Nasıl Oynanır?</div>
+                    <div>Firebase gizli sayıyı üretir, siz ikili takım olarak hamle hakkını bitirmeden bulmaya çalışırsınız. Her 3 hamlede rastgele bir kritik olay tetiklenir!</div>
+                </div>
+                <button id="btn-coop-create-room"
+                        class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-3 rounded-xl transition-all cursor-pointer shadow-md">
+                    Oda Kur
+                </button>
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-xs font-mono">VEYA</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+                <div class="space-y-2">
+                    <input type="number" id="coop-code-input"
+                           placeholder="4 Haneli Oda Kodu"
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center font-mono text-white text-lg focus:outline-none focus:border-cyan-500"
+                           pattern="\d*">
+                    <button id="btn-coop-join-room"
+                            class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded-xl transition-all cursor-pointer">
+                        Odaya Katıl
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bekleme ekranı -->
+            <div id="coop-waiting-screen" class="u-hidden space-y-4 py-4">
+                <div id="coop-room-code-display"
+                     class="text-4xl font-black text-cyan-400 tracking-widest font-mono p-4 bg-slate-950 rounded-2xl border border-slate-800">0000</div>
+                <p class="text-xs text-slate-300">Bu kodu arkadaşınla paylaş...</p>
+                <div class="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- == MODAL: Co-op Game Screen == -->
+    <div id="coop-game-modal"
+         class="u-hidden absolute inset-0 flex flex-col z-40"
+         style="background-color: var(--bg-main);">
+
+        <!-- Co-op Header -->
+        <div class="flex items-center justify-between px-4 pt-4 pb-2 border-b shrink-0"
+             style="border-color: var(--border-color);">
+            <button id="btn-coop-quit"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1"
+                    style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);">
+                <i class="fa-solid fa-arrow-left text-[9px]"></i> Menü
+            </button>
+            <div class="text-center">
+                <div class="text-[10px] font-black text-cyan-400 font-mono">KOLEKTIF ZEKA</div>
+                <div id="coop-level-badge" class="text-[9px] text-slate-400 font-mono">Bölüm 1 / 10</div>
+            </div>
+            <div class="text-right font-mono text-[10px] space-y-0.5">
+                <div id="coop-moves-badge" class="text-rose-400 font-bold">Hamle: 12</div>
+                <div id="coop-turn-badge"  class="text-cyan-400 font-bold">Sıra: -</div>
+            </div>
+        </div>
+
+        <!-- Kritik Olay Banner -->
+        <div id="coop-event-banner"
+             class="u-hidden mx-4 mt-2 shrink-0 p-3 rounded-2xl border text-xs font-mono font-bold text-center modal-enter"
+             style="background:rgba(251,191,36,0.10); border-color:rgba(251,191,36,0.35); color:#fbbf24;">
+        </div>
+
+        <!-- Sinerji Banner -->
+        <div id="coop-synergy-banner"
+             class="u-hidden mx-4 mt-1 shrink-0 p-2 rounded-xl border text-[10px] font-mono font-bold text-center"
+             style="background:rgba(16,185,129,0.10); border-color:rgba(16,185,129,0.30); color:#34d399;">
+            Sinerji Hamlesi! +1 Hamle Hakkı Kazanıldı!
+        </div>
+
+        <!-- Partner durum göstergesi -->
+        <div class="flex gap-2 mx-4 mt-2 shrink-0">
+            <div id="coop-my-card"
+                 class="flex-1 p-2 rounded-xl border text-[9px] font-mono text-center"
+                 style="background-color: var(--bg-card); border-color: var(--border-color);">
+                <div class="font-bold text-cyan-400">Sen</div>
+                <div id="coop-my-status" class="text-slate-400">Bekliyor</div>
+            </div>
+            <div id="coop-partner-card"
+                 class="flex-1 p-2 rounded-xl border text-[9px] font-mono text-center"
+                 style="background-color: var(--bg-card); border-color: var(--border-color);">
+                <div class="font-bold text-teal-400">Ortak</div>
+                <div id="coop-partner-status" class="text-slate-400">Bekliyor</div>
+            </div>
+        </div>
+
+        <!-- Tarihçe -->
+        <div id="coop-history" class="flex-1 my-2 mx-4 overflow-y-auto space-y-2 min-h-0"></div>
+
+        <!-- Sıra olmayan oyuncu: pas/devret paneli -->
+        <div id="coop-waiting-turn-panel"
+             class="u-hidden mx-4 mb-2 p-3 rounded-2xl border text-center space-y-2 shrink-0"
+             style="background:rgba(99,102,241,0.08); border-color:rgba(99,102,241,0.3);">
+            <p class="text-xs text-indigo-300 font-mono font-bold">Sıra Ortağında!</p>
+            <div class="flex gap-2">
+                <button id="btn-coop-take-turn"
+                        class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-xl text-xs cursor-pointer transition-all active:scale-95">
+                    Sıra Al
+                </button>
+                <button id="btn-coop-pass"
+                        class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs cursor-pointer transition-all active:scale-95">
+                    Pas Geç
+                </button>
+            </div>
+        </div>
+
+        <!-- Input hücreleri -->
+        <div class="shrink-0 px-4 pb-1">
+            <div id="coop-cells-wrapper" class="flex justify-center gap-3 mb-2"></div>
+        </div>
+
+        <!-- Co-op Klavye -->
+        <div class="shrink-0 px-4 pb-3">
+            <div id="coop-keyboard" class="space-y-2"></div>
         </div>
     </div>
 
@@ -1139,6 +1279,736 @@ async function fbQuitRoom() {
    - allowedPool: kullanılabilecek rakamlar
    - digits: kaç basamak
 =============================================================== */
+
+
+/* ===============================================================
+   S4-COOP * KOLEKTIF ZEKA - Co-op Modu
+   Mimari:
+     coopState  -- oturum durumu
+     fbCoop*    -- Firebase katmani
+     CoopLogic  -- oyun mantigi
+     CoopUI     -- render
+=============================================================== */
+
+/* -- Co-op Sabitler -- */
+const COOP_MAX_MOVES_START = 12; // Baslangic hamle hakki
+const COOP_DIGITS          = 4;
+const COOP_POOL            = ["1","2","3","4","5","6","7","8","9"];
+const COOP_LEVELS          = 10;
+
+/* -- Co-op Oyun Durumu -- */
+const coopState = {
+    roomCode:         null,
+    myRole:           null,   // "creator" | "joiner"
+    isActive:         false,
+    currentLevel:     0,      // 0-9
+    teamMoves:        COOP_MAX_MOVES_START,
+    secretNumber:     "",
+    movesCount:       0,
+    currentTurn:      "creator", // kimin sirasi
+    localHistory:     [],
+    lastJokerType:    null,   // sinerji takibi
+    partnerLastJoker: null,
+    _lastGuessId:     "",
+    _lastEventTs:     0
+};
+
+/* -- Firebase Co-op Katmani -- */
+const coopRef = {
+    db:   null, // firebaseRefs.db ile ayni
+    room: null,
+    detach() {
+        if (this.room) { this.room.off(); this.room = null; }
+    }
+};
+
+/** Rastgele 4-basamakli tekrarsiz sayi uret (1-9) */
+function _coopGenerateSecret() {
+    const pool = [...COOP_POOL];
+    let result = "";
+    for (let i = 0; i < COOP_DIGITS; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        result += pool[idx];
+        pool.splice(idx, 1);
+    }
+    return result;
+}
+
+/** Kritik olay tipi sec */
+function _coopPickEvent() {
+    const types = ["extra_moves", "hint_digit", "time_bonus"];
+    return types[Math.floor(Math.random() * types.length)];
+}
+
+/** Co-op odasi kur */
+async function fbCoopCreateRoom() {
+    const code   = Math.floor(1000 + Math.random() * 9000).toString();
+    const secret = _coopGenerateSecret();
+    coopState.roomCode = code;
+    coopState.myRole   = "creator";
+
+    const ref = firebaseRefs.db.ref("coop_rooms/" + code);
+    coopRef.room = ref;
+
+    try {
+        await ref.set({
+            creatorId:      playerStats.uid,
+            joinerId:       "",
+            status:         "waiting",
+            currentLevel:   0,
+            teamMoves:      COOP_MAX_MOVES_START,
+            secret:         secret,
+            turn:           "creator",
+            movesCount:     0,
+            lastGuessData:  "",
+            lastJokerData:  "",
+            criticalEvent:  null,
+            winner:         "",
+            reaction:       ""
+        });
+        CoopUI.showWaiting(code);
+        fbCoopBindListener();
+    } catch (err) {
+        console.error("[Co-op] Oda kurma hatasi:", err);
+        UI.showError("Co-op odasi kurulamadi. Baglanti kontrol edin.");
+    }
+}
+
+/** Co-op odasina katil */
+async function fbCoopJoinRoom(code) {
+    if (!code || String(code).length !== 4) {
+        UI.showError("Lutfen 4 haneli oda kodunu girin.");
+        return;
+    }
+    const ref = firebaseRefs.db.ref("coop_rooms/" + code);
+    coopRef.room = ref;
+
+    try {
+        const snap = await ref.once("value");
+        const data = snap.val();
+        if (!data) { UI.showError("Oda bulunamadi!"); return; }
+        if (data.status !== "waiting" || data.joinerId !== "") {
+            UI.showError("Bu oda dolu veya oyun baslamis.");
+            return;
+        }
+        coopState.roomCode = code;
+        coopState.myRole   = "joiner";
+        await ref.update({ joinerId: playerStats.uid, status: "playing" });
+        fbCoopBindListener();
+    } catch (err) {
+        console.error("[Co-op] Odaya katilma hatasi:", err);
+        UI.showError("Odaya katilinamadi.");
+    }
+}
+
+/** Co-op oda dinleyicisi */
+function fbCoopBindListener() {
+    if (!coopRef.room) return;
+
+    coopRef.room.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // Joiner girince creator'a playing yap
+        if (data.status === "waiting" && data.joinerId !== "" && coopState.myRole === "creator") {
+            coopRef.room.update({ status: "playing" });
+            return;
+        }
+
+        // Oyun basladi
+        if (data.status === "playing") {
+            if (!coopState.isActive) {
+                CoopLogic.initGame(data);
+            } else {
+                // Sync updates
+                CoopLogic.syncFromFirebase(data);
+            }
+        }
+
+        // Oyun bitti
+        if (data.status === "ended" && coopState.isActive) {
+            CoopLogic.endGame(data);
+        }
+
+    }, (err) => {
+        console.error("[Co-op] Listener hatasi:", err);
+        UI.showError("Co-op baglantisi kesildi.");
+        setTimeout(() => {
+            coopRef.detach();
+            UI.showStartMenu();
+        }, 2000);
+    });
+}
+
+/** Co-op tahmin yaz */
+async function fbCoopWriteGuess(guessStr, resultStr, isWin) {
+    const nextTurn   = coopState.currentTurn === "creator" ? "joiner" : "creator";
+    const newMoves   = coopState.teamMoves - 1;
+    const newCount   = coopState.movesCount + 1;
+    const guessId    = playerStats.uid + "_" + guessStr + "_" + newCount;
+    const guessData  = guessId + ":" + guessStr + ":" + resultStr + ":" + playerStats.uid;
+
+    // Kritik olay kontrolu (her 3 hamlede)
+    let eventData = null;
+    if (newCount % 3 === 0 && !isWin && newMoves > 0) {
+        eventData = {
+            type:      _coopPickEvent(),
+            timestamp: Date.now(),
+            level:     coopState.currentLevel
+        };
+    }
+
+    const update = {
+        turn:          nextTurn,
+        teamMoves:     newMoves,
+        movesCount:    newCount,
+        lastGuessData: guessData,
+        criticalEvent: eventData
+    };
+
+    if (isWin) {
+        update.status = "level_clear";
+        update.winner = "team";
+    } else if (newMoves <= 0) {
+        update.status = "ended";
+        update.winner = "none";
+    }
+
+    try {
+        await coopRef.room.update(update);
+    } catch (err) {
+        console.error("[Co-op] Hamle yazma hatasi:", err);
+        UI.showError("Hamle kaydedilemedi.");
+    }
+}
+
+/** Co-op sira al */
+async function fbCoopTakeTurn() {
+    try {
+        await coopRef.room.update({ turn: coopState.myRole });
+    } catch (err) {
+        console.error("[Co-op] Sira alma hatasi:", err);
+    }
+}
+
+/** Co-op pas gec */
+async function fbCoopPass() {
+    const nextTurn = coopState.myRole === "creator" ? "joiner" : "creator";
+    try {
+        await coopRef.room.update({ turn: nextTurn });
+    } catch (err) {
+        console.error("[Co-op] Pas hatasi:", err);
+    }
+}
+
+/** Co-op seviye temizlendi -- sonraki seviyeye gec */
+async function fbCoopNextLevel(data) {
+    const nextLevel = (data.currentLevel || 0) + 1;
+    if (nextLevel >= COOP_LEVELS) {
+        await coopRef.room.update({ status: "ended", winner: "team_all_clear" });
+        return;
+    }
+    const nextMoves = Math.max(6, COOP_MAX_MOVES_START - nextLevel); // Her seviye 1 hamle azalir
+    const newSecret = _coopGenerateSecret();
+    await coopRef.room.update({
+        status:        "playing",
+        currentLevel:  nextLevel,
+        teamMoves:     nextMoves,
+        movesCount:    0,
+        secret:        newSecret,
+        turn:          "creator",
+        lastGuessData: "",
+        criticalEvent: null
+    });
+}
+
+/** Co-op joker yaz (sinerji icin) */
+async function fbCoopWriteJoker(jokerType) {
+    const jokerData = jokerType + ":" + playerStats.uid + ":" + Date.now();
+    try {
+        await coopRef.room.update({ lastJokerData: jokerData });
+    } catch (err) {
+        console.error("[Co-op] Joker yazma hatasi:", err);
+    }
+}
+
+/** Co-op odadan ayril */
+async function fbCoopQuit() {
+    if (!coopRef.room) return;
+    try {
+        await coopRef.room.update({ status: "ended", winner: "none" });
+    } catch (_) {}
+    coopRef.detach();
+}
+
+/* -- Co-op Oyun Mantigi -- */
+const CoopLogic = {
+
+    initGame(data) {
+        coopState.isActive      = true;
+        coopState.currentLevel  = data.currentLevel || 0;
+        coopState.teamMoves     = data.teamMoves    || COOP_MAX_MOVES_START;
+        coopState.movesCount    = data.movesCount   || 0;
+        coopState.secretNumber  = data.secret       || "";
+        coopState.currentTurn   = data.turn         || "creator";
+        coopState.localHistory  = [];
+        coopState._lastGuessId  = "";
+        coopState._lastEventTs  = 0;
+        coopState.lastJokerType = null;
+        coopState.partnerLastJoker = null;
+
+        UI.modal.hide("coop-setup-modal");
+        CoopUI.buildGameScreen();
+        CoopUI.updateHeader();
+        CoopUI.updateTurnUI();
+        UI.modal.show("coop-game-modal");
+    },
+
+    syncFromFirebase(data) {
+        const prevMoves = coopState.teamMoves;
+        coopState.teamMoves   = data.teamMoves   || coopState.teamMoves;
+        coopState.movesCount  = data.movesCount  || coopState.movesCount;
+        coopState.currentTurn = data.turn        || coopState.currentTurn;
+
+        CoopUI.updateHeader();
+        CoopUI.updateTurnUI();
+
+        // Gelen tahmin
+        if (data.lastGuessData) {
+            const parts = data.lastGuessData.split(":");
+            if (parts.length === 4) {
+                const [id, guess, result, uid] = parts;
+                if (id !== coopState._lastGuessId) {
+                    coopState._lastGuessId = id;
+                    const isMe = uid === playerStats.uid;
+                    CoopUI.addHistoryRow(guess, result, isMe);
+                }
+            }
+        }
+
+        // Kritik olay
+        if (data.criticalEvent && data.criticalEvent.timestamp !== coopState._lastEventTs) {
+            coopState._lastEventTs = data.criticalEvent.timestamp;
+            this.handleCriticalEvent(data.criticalEvent);
+        }
+
+        // Joker sinerji kontrolu
+        if (data.lastJokerData) {
+            const parts = data.lastJokerData.split(":");
+            if (parts.length === 3) {
+                const [jType, jUid] = parts;
+                if (jUid !== playerStats.uid) {
+                    // Partner joker kullandı
+                    const wasMyJoker = coopState.lastJokerType;
+                    if (wasMyJoker && wasMyJoker !== jType) {
+                        // Farklı joker = Sinerji!
+                        this.triggerSynergy();
+                    }
+                    coopState.partnerLastJoker = jType;
+                }
+            }
+        }
+
+        // Level temizlendi
+        if (data.status === "level_clear") {
+            this.handleLevelClear(data);
+        }
+    },
+
+    submitGuess() {
+        if (!coopState.isActive) return;
+        if (coopState.currentTurn !== coopState.myRole) {
+            CoopUI.flashWaitingPanel();
+            return;
+        }
+
+        const cells = [];
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const cell = document.getElementById("coop-cell-" + i);
+            const val  = cell ? (cell.dataset.input || "") : "";
+            cells.push(val);
+        }
+        if (cells.some(v => !v)) { CoopUI.shakeCells(); return; }
+        if (new Set(cells).size !== cells.length) { CoopUI.shakeCells(); return; }
+
+        const guessStr = cells.join("");
+        let plus = 0, minus = 0;
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            if      (cells[i] === coopState.secretNumber[i]) plus++;
+            else if (coopState.secretNumber.includes(cells[i])) minus++;
+        }
+        const resultStr = "+" + plus + " -" + minus;
+        const isWin     = plus === COOP_DIGITS;
+
+        CoopUI.clearInput();
+        fbCoopWriteGuess(guessStr, resultStr, isWin);
+    },
+
+    handleCriticalEvent(event) {
+        const eventMap = {
+            extra_moves:  { emoji: "🎲", text: "+2 Hamle Hakkı Kazanıldı!", action: () => this._applyExtraMoves(2) },
+            hint_digit:   { emoji: "💡", text: "İpucu: Gizli Sayıda Bir Rakam Açıklandı!", action: () => this._revealHintDigit() },
+            time_bonus:   { emoji: "⭐", text: "+3 Ekstra Hamle Hakkı!", action: () => this._applyExtraMoves(3) }
+        };
+        const e = eventMap[event.type];
+        if (!e) return;
+        CoopUI.showEventBanner(e.emoji + " " + e.text);
+        e.action();
+    },
+
+    _applyExtraMoves(n) {
+        coopState.teamMoves += n;
+        coopRef.room.update({ teamMoves: coopState.teamMoves }).catch(console.error);
+        CoopUI.updateHeader();
+    },
+
+    _revealHintDigit() {
+        const digits = coopState.secretNumber.split("");
+        // Henuz yeşil olmayan bir basamak sec
+        const candidates = digits.filter((d, i) => {
+            const key = document.getElementById("coop-key-" + d);
+            return !key || key.clickState !== 2;
+        });
+        if (candidates.length === 0) return;
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        _setCoopKeyState(pick, 2);
+    },
+
+    triggerSynergy() {
+        coopState.teamMoves++;
+        coopRef.room.update({ teamMoves: coopState.teamMoves }).catch(console.error);
+        CoopUI.showSynergyBanner();
+        CoopUI.updateHeader();
+        coopState.lastJokerType    = null;
+        coopState.partnerLastJoker = null;
+    },
+
+    useCoopJoker(type) {
+        if (!coopState.isActive) return;
+        const costs = { ele: 500, fisilda: 750, basamak: 1000, zamanbuk: 25 };
+        if (!costs[type]) return;
+
+        if (playerStats.jokers[type] > 0) {
+            playerStats.jokers[type]--;
+        } else {
+            if (playerStats.score < costs[type]) {
+                UI.showError("Yetersiz puan! Gereken: " + costs[type]);
+                return;
+            }
+            playerStats.score -= costs[type];
+        }
+        saveStats();
+        UI.updateMenuData();
+
+        // Joker etkisini uygula
+        if (type === "ele") {
+            const candidates = COOP_POOL.filter(n =>
+                !coopState.secretNumber.includes(n) &&
+                document.getElementById("coop-key-" + n)?.clickState !== 1
+            );
+            if (!candidates.length) { UI.showError("Elenecek rakam kalmadı!"); return; }
+            _setCoopKeyState(candidates[Math.floor(Math.random() * candidates.length)], 1);
+
+        } else if (type === "fisilda") {
+            const candidates = coopState.secretNumber.split("").filter(n =>
+                document.getElementById("coop-key-" + n)?.clickState !== 2
+            );
+            if (!candidates.length) { UI.showError("Tüm rakamlar bulundu!"); return; }
+            const pick = candidates[Math.floor(Math.random() * candidates.length)];
+            _setCoopKeyState(pick, 2);
+            UI.showError("Fısıltı: Sayıda '" + pick + "' rakamı var!");
+
+        } else if (type === "basamak") {
+            const unopened = [];
+            for (let i = 0; i < COOP_DIGITS; i++) {
+                const cell = document.getElementById("coop-cell-" + i);
+                if (cell && !cell.dataset.input) unopened.push(i);
+            }
+            const idx   = unopened.length > 0 ? unopened[Math.floor(Math.random() * unopened.length)] : Math.floor(Math.random() * COOP_DIGITS);
+            const digit = coopState.secretNumber[idx];
+            _setCoopKeyState(digit, 2);
+            UI.showError("Aç Jokeri: " + (idx + 1) + ". basamak = '" + digit + "'");
+        }
+        // Sinerji takibi
+        coopState.lastJokerType = type;
+        fbCoopWriteJoker(type);
+    },
+
+    handleLevelClear(data) {
+        coopState.isActive = false;
+        const level  = (data.currentLevel || 0) + 1;
+        const isLast = level >= COOP_LEVELS;
+        const bonus  = 250 * level;
+        playerStats.score += bonus;
+        saveStats();
+
+        const msg = isLast
+            ? "BUTUN BOLUMLERI TAMAMLADINIZ! +" + bonus + " puan! Efsanevi Takim!"
+            : "Bolum " + level + " Temizlendi! +" + bonus + " puan! Sonraki bolume gec?";
+
+        if (isLast) {
+            alert(msg);
+            coopRef.detach();
+            UI.modal.hide("coop-game-modal");
+            UI.showStartMenu();
+        } else {
+            const goNext = confirm(msg);
+            if (goNext && coopState.myRole === "creator") {
+                fbCoopNextLevel(data);
+            }
+        }
+    },
+
+    endGame(data) {
+        if (!coopState.isActive) return;
+        coopState.isActive = false;
+        coopRef.detach();
+
+        const isAllClear = data.winner === "team_all_clear";
+        const isWin      = data.winner === "team" || isAllClear;
+        const msg        = isAllClear
+            ? "TUM BOLUMLER TAMAMLANDI! Mükemmel takim!"
+            : isWin
+                ? "TAKIMINIZ KAZANDI! Gizli sayi: " + coopState.secretNumber
+                : "HAMLE HAKKI BITTI! Gizli sayi: " + coopState.secretNumber + ". Tekrar dene!";
+
+        setTimeout(() => {
+            alert(msg);
+            UI.modal.hide("coop-game-modal");
+            UI.showStartMenu();
+        }, 300);
+    }
+};
+
+/* -- Co-op UI -- */
+const CoopUI = {
+
+    showWaiting(code) {
+        const ia = document.getElementById("coop-initial-actions");
+        const ws = document.getElementById("coop-waiting-screen");
+        const cd = document.getElementById("coop-room-code-display");
+        if (ia) ia.classList.add("u-hidden");
+        if (ws) ws.classList.remove("u-hidden");
+        if (cd) cd.textContent = code;
+    },
+
+    buildGameScreen() {
+        // Hücreler
+        const wrapper = document.getElementById("coop-cells-wrapper");
+        if (!wrapper) return;
+        wrapper.innerHTML = "";
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const cell = document.createElement("div");
+            cell.id           = "coop-cell-" + i;
+            cell.dataset.input = "";
+            cell.className    = "w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black font-mono text-amber-500 transition-all";
+            cell.style.cssText = "background-color:var(--bg-card); border:2px solid var(--border-color);";
+            wrapper.appendChild(cell);
+        }
+
+        // Klavye
+        const kb = document.getElementById("coop-keyboard");
+        if (!kb) return;
+        kb.innerHTML = `
+            <div class="grid grid-cols-5 gap-1.5">
+                ${["1","2","3","4","5"].map(n => _coopKeyBtn(n)).join("")}
+            </div>
+            <div class="grid grid-cols-6 gap-1.5">
+                ${["6","7","8","9"].map(n => _coopKeyBtn(n)).join("")}
+                <button id="coop-btn-del" class="h-12 bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center active:scale-95 transition-all">
+                    <i class="fa-solid fa-delete-left text-base"></i>
+                </button>
+                <button id="coop-btn-sub" class="h-12 bg-cyan-500 text-white rounded-xl font-black flex items-center justify-center active:scale-95 transition-all shadow-lg">
+                    <i class="fa-solid fa-paper-plane text-base"></i>
+                </button>
+            </div>`;
+
+        this._bindCoopControls();
+        // Tarihçeyi sifirla
+        const hist = document.getElementById("coop-history");
+        if (hist) hist.innerHTML = "";
+    },
+
+    _bindCoopControls() {
+        const del = document.getElementById("coop-btn-del");
+        const sub = document.getElementById("coop-btn-sub");
+        if (del) del.onclick = (e) => { e.preventDefault(); this.deleteInput(); };
+        if (sub) sub.onclick = (e) => { e.preventDefault(); CoopLogic.submitGuess(); };
+
+        COOP_POOL.forEach(n => {
+            const key = document.getElementById("coop-key-" + n);
+            if (!key) return;
+            key.clickState = 0;
+            let tStart = 0, tTimer = null, isLong = false;
+            key.ontouchstart = (e) => {
+                e.preventDefault();
+                isLong = false; tStart = Date.now();
+                tTimer = setTimeout(() => {
+                    isLong = true;
+                    key.clickState = (key.clickState + 1) % 3;
+                    _setCoopKeyState(n, key.clickState);
+                    if (navigator.vibrate) navigator.vibrate(40);
+                }, 400);
+            };
+            key.ontouchend = (e) => {
+                e.preventDefault();
+                clearTimeout(tTimer);
+                if (!isLong && Date.now() - tStart < 400) this.inputDigit(n);
+            };
+            key.onclick = () => { if (!("ontouchstart" in window)) this.inputDigit(n); };
+        });
+    },
+
+    inputDigit(digit) {
+        if (!coopState.isActive || coopState.currentTurn !== coopState.myRole) return;
+        // Dolu mu?
+        let filled = 0;
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (c && c.dataset.input) filled++;
+        }
+        if (filled >= COOP_DIGITS) return;
+
+        // Tekrar kontrolü
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (c && c.dataset.input === digit) { this.shakeCells(); return; }
+        }
+
+        // Ilk bos hucreye yaz
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (c && !c.dataset.input) {
+                c.textContent      = digit;
+                c.dataset.input    = digit;
+                c.style.borderColor = "#f59e0b";
+                break;
+            }
+        }
+    },
+
+    deleteInput() {
+        if (!coopState.isActive) return;
+        for (let i = COOP_DIGITS - 1; i >= 0; i--) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (c && c.dataset.input) {
+                c.textContent      = "";
+                c.dataset.input    = "";
+                c.style.borderColor = "var(--border-color)";
+                break;
+            }
+        }
+    },
+
+    clearInput() {
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (c) { c.textContent = ""; c.dataset.input = ""; c.style.borderColor = "var(--border-color)"; }
+        }
+    },
+
+    shakeCells() {
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            const c = document.getElementById("coop-cell-" + i);
+            if (!c) continue;
+            c.classList.add("animate-pulse");
+            setTimeout(() => c.classList.remove("animate-pulse"), 200);
+        }
+    },
+
+    updateHeader() {
+        const mb = document.getElementById("coop-moves-badge");
+        const lb = document.getElementById("coop-level-badge");
+        if (mb) mb.textContent = "Hamle: " + coopState.teamMoves;
+        if (lb) lb.textContent = "Bolum " + (coopState.currentLevel + 1) + " / " + COOP_LEVELS;
+    },
+
+    updateTurnUI() {
+        const isMyTurn = coopState.currentTurn === coopState.myRole;
+        const tb = document.getElementById("coop-turn-badge");
+        if (tb) {
+            tb.textContent  = isMyTurn ? "Sira Sende!" : "Sira Ortakta";
+            tb.style.color  = isMyTurn ? "#34d399" : "#94a3b8";
+        }
+
+        const myCard = document.getElementById("coop-my-card");
+        const pCard  = document.getElementById("coop-partner-card");
+        if (myCard) myCard.style.borderColor = isMyTurn ? "#06b6d4" : "var(--border-color)";
+        if (pCard)  pCard.style.borderColor  = !isMyTurn ? "#14b8a6" : "var(--border-color)";
+
+        const myStatus = document.getElementById("coop-my-status");
+        const pStatus  = document.getElementById("coop-partner-status");
+        if (myStatus) myStatus.textContent = isMyTurn ? "Hamle Yapıyor" : "Bekliyor";
+        if (pStatus)  pStatus.textContent  = !isMyTurn ? "Hamle Yapıyor" : "Bekliyor";
+
+        // Bekleme paneli
+        const waitPanel = document.getElementById("coop-waiting-turn-panel");
+        if (waitPanel) {
+            if (!isMyTurn) waitPanel.classList.remove("u-hidden");
+            else           waitPanel.classList.add("u-hidden");
+        }
+    },
+
+    addHistoryRow(tahmin, resultStr, isMe) {
+        const container = document.getElementById("coop-history");
+        if (!container) return;
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2 rounded-2xl border modal-enter";
+        row.style.backgroundColor = isMe ? "rgba(6,182,212,0.08)" : "var(--bg-card)";
+        row.style.borderColor     = isMe ? "rgba(6,182,212,0.3)"  : "var(--border-color)";
+
+        let cellsHtml = `<div class="flex items-center gap-2">
+            <span class="text-[8px] font-mono font-bold px-1 rounded ${isMe ? "bg-cyan-500 text-white" : "bg-slate-700 text-slate-300"}">${isMe ? "SEN" : "ORTAK"}</span>
+            <div class="flex gap-1">`;
+        for (let i = 0; i < COOP_DIGITS; i++) {
+            cellsHtml += `<div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs"
+                style="background-color:var(--bg-main); border:1px solid var(--border-color); color:var(--text-main);">${tahmin[i] || ""}</div>`;
+        }
+        cellsHtml += `</div></div>`;
+
+        const badgeHtml = `<span class="px-2 py-0.5 rounded-md bg-cyan-600/10 text-cyan-400 border border-cyan-500/20 font-mono text-xs font-black">${resultStr}</span>`;
+        row.innerHTML = cellsHtml + badgeHtml;
+        container.insertBefore(row, container.firstChild);
+    },
+
+    showEventBanner(text) {
+        const banner = document.getElementById("coop-event-banner");
+        if (!banner) return;
+        banner.textContent = text;
+        banner.classList.remove("u-hidden");
+        clearTimeout(banner._timer);
+        banner._timer = setTimeout(() => banner.classList.add("u-hidden"), 5000);
+    },
+
+    showSynergyBanner() {
+        const banner = document.getElementById("coop-synergy-banner");
+        if (!banner) return;
+        banner.classList.remove("u-hidden");
+        clearTimeout(banner._timer);
+        banner._timer = setTimeout(() => banner.classList.add("u-hidden"), 3000);
+    },
+
+    flashWaitingPanel() {
+        const p = document.getElementById("coop-waiting-turn-panel");
+        if (!p) return;
+        p.style.borderColor = "#f43f5e";
+        setTimeout(() => { p.style.borderColor = ""; }, 600);
+    }
+};
+
+/* Co-op klavye yardimcilari */
+function _coopKeyBtn(n) {
+    return `<button id="coop-key-${n}" class="h-12 border rounded-xl font-bold text-lg active:scale-95 transition-all select-none key-neutral">${n}</button>`;
+}
+function _setCoopKeyState(digit, state) {
+    const key = document.getElementById("coop-key-" + digit);
+    if (!key) return;
+    key.clickState = state;
+    key.classList.remove("key-neutral", "key-red", "key-green");
+    if      (state === 1) key.classList.add("key-red");
+    else if (state === 2) key.classList.add("key-green");
+    else                  key.classList.add("key-neutral");
+}
 
 const LABIRENT_LEVELS = [
     {
@@ -2122,6 +2992,8 @@ const UI = {
         this.modal.hide("pvp-setup-modal");
         this.modal.hide("pvp-reaction-bar");
         this.modal.hide("labirent-modal");
+        this.modal.hide("coop-setup-modal");
+        this.modal.hide("coop-game-modal");
 
         timers.clear();
         firebaseRefs.detachRoom();
@@ -2631,6 +3503,7 @@ function bindEvents() {
     // Header
     document.getElementById("btn-quit-game").addEventListener("click", async () => {
         if (gameState.isPvP && firebaseRefs.roomRef) await fbQuitRoom();
+        if (coopState.isActive) await fbCoopQuit();
         UI.showStartMenu();
     });
     document.getElementById("btn-toggle-theme").addEventListener("click",       () => UI.toggleTheme());
@@ -2662,6 +3535,45 @@ function bindEvents() {
         const el = document.getElementById(id);
         if (el) el.addEventListener("click", () => GameLogic.changeHistoryFilter(filter));
     });
+
+    // Co-op Modu
+    const btnCoopOpen = document.getElementById("btn-open-coop-menu");
+    if (btnCoopOpen) btnCoopOpen.addEventListener("click", () => {
+        // Setup modal'ı sıfırla
+        const ia = document.getElementById("coop-initial-actions");
+        const ws = document.getElementById("coop-waiting-screen");
+        if (ia) ia.classList.remove("u-hidden");
+        if (ws) ws.classList.add("u-hidden");
+        const inp = document.getElementById("coop-code-input");
+        if (inp) inp.value = "";
+        UI.modal.show("coop-setup-modal");
+    });
+
+    const btnCoopClose = document.getElementById("btn-close-coop-menu");
+    if (btnCoopClose) btnCoopClose.addEventListener("click", () => UI.modal.hide("coop-setup-modal"));
+
+    const btnCoopCreate = document.getElementById("btn-coop-create-room");
+    if (btnCoopCreate) btnCoopCreate.addEventListener("click", fbCoopCreateRoom);
+
+    const btnCoopJoin = document.getElementById("btn-coop-join-room");
+    if (btnCoopJoin) btnCoopJoin.addEventListener("click", () => {
+        const code = document.getElementById("coop-code-input")?.value.trim();
+        fbCoopJoinRoom(code);
+    });
+
+    const btnCoopQuit = document.getElementById("btn-coop-quit");
+    if (btnCoopQuit) btnCoopQuit.addEventListener("click", async () => {
+        coopState.isActive = false;
+        await fbCoopQuit();
+        UI.modal.hide("coop-game-modal");
+        UI.showStartMenu();
+    });
+
+    const btnCoopTake = document.getElementById("btn-coop-take-turn");
+    if (btnCoopTake) btnCoopTake.addEventListener("click", fbCoopTakeTurn);
+
+    const btnCoopPass = document.getElementById("btn-coop-pass");
+    if (btnCoopPass) btnCoopPass.addEventListener("click", fbCoopPass);
 
     // Mantık Labirenti
     const btnLabirent = document.getElementById("btn-mode-labirent");
