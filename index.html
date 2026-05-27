@@ -1425,14 +1425,39 @@ const LabirentLogic = {
     },
 
     _generateSecret(schema) {
-        const pool = [...schema.allowedPool];
-        let result = "";
-        for (let i = 0; i < schema.digits; i++) {
-            const idx = Math.floor(Math.random() * pool.length);
-            result += pool[idx];
-            pool.splice(idx, 1);
+        // redKeys kesinlikle OLMAMALI, greenKeys kesinlikle OLMALI
+        const forbidden = new Set(schema.redKeys || []);
+        const mustHave  = [...(schema.greenKeys || [])];
+
+        // Havuzdan yasaklı rakamları cikar
+        const pool = schema.allowedPool.filter(n => !forbidden.has(n));
+
+        // greenKeys sayida olmali -- bunlari once yerlestirelim
+        // Kalan slotlar icin mustHave disindaki rakamlardan sec
+        const freePool  = pool.filter(n => !mustHave.includes(n));
+        const digits    = schema.digits;
+
+        if (mustHave.length > digits) {
+            console.warn("[Labirent] greenKeys sayisi digits'ten buyuk!");
+            return pool.slice(0, digits).join("");
         }
-        return result;
+
+        // Rastgele siralama yardimcisi
+        const shuffle = arr => {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        };
+
+        // Kalan slot sayisi
+        const remaining = digits - mustHave.length;
+        const fillers   = shuffle(freePool).slice(0, remaining);
+        const combined  = shuffle([...mustHave, ...fillers]);
+
+        return combined.join("");
     },
 
     _buildLabElements(schema) {
